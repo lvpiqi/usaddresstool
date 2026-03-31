@@ -3,10 +3,7 @@ import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
 
 const defaultSiteUrl = "https://usaddresstool.com";
-const siteUrl =
-  process.env.SITE_URL?.trim() ||
-  process.env.CF_PAGES_URL?.trim() ||
-  defaultSiteUrl;
+const siteUrl = process.env.SITE_URL?.trim() || defaultSiteUrl;
 
 const excludedLeafSegments = new Set([
   "403",
