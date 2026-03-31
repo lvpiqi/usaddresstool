@@ -34,10 +34,29 @@ const {
 } = Astro.props;
 
 const htmlLang = localeMeta[locale].htmlLang;
-const fullTitle = `${title} | ${ui[locale].metaTitleSuffix}`;
+const titleSuffix = ` | ${ui[locale].metaTitleSuffix}`;
+const fullTitle =
+  title.length + titleSuffix.length > 60 ? title : `${title}${titleSuffix}`;
 const canonicalUrl = Astro.site
   ? new URL(canonicalPath, Astro.site).toString()
   : canonicalPath;
+const ogLocaleMap: Record<Locale, string> = {
+  zh: "zh_CN",
+  en: "en_US",
+  ja: "ja_JP"
+};
+const alternateOgLocales = Object.entries(ogLocaleMap)
+  .filter(([code]) => code !== locale)
+  .map(([, value]) => value);
+const siteSchema = Astro.site
+  ? {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: new URL("/", Astro.site).toString(),
+      inLanguage: htmlLang
+    }
+  : null;
 ---
 
 <!doctype html>
@@ -57,7 +76,10 @@ const canonicalUrl = Astro.site
     <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={siteConfig.name} />
-    <meta property="og:locale" content={htmlLang} />
+    <meta property="og:locale" content={ogLocaleMap[locale]} />
+    {alternateOgLocales.map((value) => (
+      <meta property="og:locale:alternate" content={value} />
+    ))}
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
@@ -69,6 +91,9 @@ const canonicalUrl = Astro.site
     {alternates.map((alternate) => (
       <link rel="alternate" hreflang={alternate.hreflang} href={Astro.site ? new URL(alternate.href, Astro.site).toString() : alternate.href} />
     ))}
+    {siteSchema ? (
+      <script type="application/ld+json" set:html={JSON.stringify(siteSchema)} />
+    ) : null}
     {schema.map((entry) => (
       <script type="application/ld+json" set:html={JSON.stringify(entry)} />
     ))}

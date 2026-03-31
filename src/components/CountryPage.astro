@@ -36,7 +36,6 @@ if (!country) {
 }
 
 const pageCountry = withCountryContent(country);
-
 const strings = ui[locale];
 const canonicalPath = getCountryPath(locale, country.slug);
 const canonicalUrl = toAbsoluteUrl(canonicalPath, Astro.site);
@@ -52,9 +51,10 @@ const runtimeRegions = getRuntimeRegions(country).map((region) => ({
   code: region.code,
   label: getRuntimeRegionDisplayName(country, region, locale)
 }));
+
 const sectionTitles = {
   format: {
-    zh: `${pageCountry.name[locale]}地址格式要点`,
+    zh: `${pageCountry.name[locale]}地址格式`,
     en: `${pageCountry.name[locale]} Address Format`,
     ja: `${pageCountry.name[locale]}の住所形式`
   },
@@ -66,22 +66,22 @@ const sectionTitles = {
   region: {
     zh: `${pageCountry.regionLabel[locale]}筛选说明`,
     en: `${pageCountry.regionLabel[locale]} Filter Notes`,
-    ja: `${pageCountry.regionLabel[locale]}フィルターの説明`
+    ja: `${pageCountry.regionLabel[locale]}フィルター説明`
   },
   useCases: {
-    zh: `${pageCountry.name[locale]}地址适用场景`,
+    zh: `${pageCountry.name[locale]}页适用场景`,
     en: `When To Use ${pageCountry.name[locale]} Addresses`,
-    ja: `${pageCountry.name[locale]}住所の使いどころ`
+    ja: `${pageCountry.name[locale]}ページの活用場面`
   },
   faq: {
-    zh: `${pageCountry.name[locale]}地址常见问题`,
+    zh: `${pageCountry.name[locale]}常见问题`,
     en: `${pageCountry.name[locale]} Address FAQ`,
-    ja: `${pageCountry.name[locale]}住所の FAQ`
+    ja: `${pageCountry.name[locale]} FAQ`
   },
   related: {
-    zh: `${pageCountry.name[locale]}地址相关文章`,
+    zh: `${pageCountry.name[locale]}相关文章`,
     en: `More About ${pageCountry.name[locale]} Addresses`,
-    ja: `${pageCountry.name[locale]}住所の関連記事`
+    ja: `${pageCountry.name[locale]}関連記事`
   }
 };
 

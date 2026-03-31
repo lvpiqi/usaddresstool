@@ -1,61 +1,127 @@
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 
-const HOMEPAGE_URL = "https://usaddresstool.com/";
-const USER_AGENT = "USAddressTool/0.1 (https://usaddresstool.com/; US dataset builder)";
-const DEFAULT_ADDRESS_TARGET_PER_STATE = 4;
-const HIGH_PRIORITY_STATE_TARGETS = {
-  AK: 8,
-  DE: 8,
-  MT: 8,
-  NH: 8,
-  OR: 8
+const FALLBACK_REFERENCE_HOMEPAGE_URL = "https://usaddressgen.com/";
+const USER_AGENT = "USAddressToolDatasetBuilder/1.0";
+// Collect a deeper per-state seed pool so runtime house-number offsets can
+// fan out from more real streets instead of repeating the same 4 entries.
+const DEFAULT_ADDRESS_TARGET_PER_STATE = 50;
+const TAX_FREE_ADDRESS_TARGET_PER_STATE = 50;
+const TAX_FREE_STATE_CODES = new Set(["AK", "DE", "MT", "NH", "OR"]);
+const REQUEST_DELAY_MS = 1400;
+const MAX_FETCH_ATTEMPTS = 4;
+const RETRY_BASE_DELAY_MS = 2200;
+const EXTRA_CITY_NAMES_BY_STATE = {
+  DE: ["Georgetown", "Middletown", "Smyrna", "Milford", "Lewes", "Rehoboth Beach", "Seaford"]
 };
-const REQUEST_DELAY_MS = 900;
 const KEYWORDS = [
   "state capitol",
   "city hall",
   "courthouse",
   "museum",
   "library",
+  "post office",
+  "town hall",
   "visitor center",
   "science center",
   "convention center",
   "art museum",
   "county courthouse",
-  "public library"
+  "public library",
+  "community center",
+  "civic center",
+  "transit center",
+  "hospital",
+  "medical center",
+  "government center",
+  "performing arts center",
+  "public market",
+  "arena",
+  "airport",
+  "regional airport",
+  "police department",
+  "fire station",
+  "college",
+  "community college",
+  "city office",
+  "county office",
+  "archives",
+  "state park",
+  "public works"
 ];
+const require = createRequire(import.meta.url);
+const args = process.argv.slice(2);
+const statesArg = args.find((arg) => arg.startsWith("--states="));
+const referenceArg = args.find((arg) => arg.startsWith("--reference="));
+const requestedStateCodes = statesArg
+  ? statesArg
+      .slice("--states=".length)
+      .split(",")
+      .map((code) => code.trim().toUpperCase())
+      .filter(Boolean)
+  : [];
+const requestedStateSet = new Set(requestedStateCodes);
+const HOMEPAGE_URL =
+  referenceArg?.slice("--reference=".length).trim() ||
+  process.env.US_ADDRESS_REFERENCE_URL?.trim() ||
+  FALLBACK_REFERENCE_HOMEPAGE_URL;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url, {
-    headers: {
-      "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent": USER_AGENT
-    }
-  });
+function buildRequestHeaders() {
+  return {
+    "Accept-Language": "en-US,en;q=0.9",
+    "User-Agent": USER_AGENT
+  };
+}
 
-  if (!response.ok) {
-    throw new Error(`Request failed for ${url}: ${response.status} ${response.statusText}`);
+async function fetchWithRetry(url, options = {}, label = String(url)) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(url, options);
+
+      if (response.ok) {
+        return response;
+      }
+
+      const error = new Error(`Request failed for ${label}: ${response.status} ${response.statusText}`);
+
+      if (attempt >= MAX_FETCH_ATTEMPTS || (response.status < 500 && response.status !== 429)) {
+        throw error;
+      }
+
+      lastError = error;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (attempt >= MAX_FETCH_ATTEMPTS) {
+        break;
+      }
+    }
+
+    await sleep(RETRY_BASE_DELAY_MS * attempt);
   }
+
+  throw lastError ?? new Error(`Request failed for ${label}`);
+}
+
+async function fetchJson(url) {
+  const response = await fetchWithRetry(url, {
+    headers: buildRequestHeaders()
+  });
 
   return response.json();
 }
 
 async function fetchText(url) {
-  const response = await fetch(url, {
-    headers: {
-      "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent": USER_AGENT
-    }
+  const response = await fetchWithRetry(url, {
+    headers: buildRequestHeaders()
   });
-
-  if (!response.ok) {
-    throw new Error(`Request failed for ${url}: ${response.status} ${response.statusText}`);
-  }
 
   return response.text();
 }
@@ -104,6 +170,32 @@ function buildSearchQueries(stateName, cityName) {
   }
 
   return queries;
+}
+
+function buildStateSearchQueries(stateName, cityNames) {
+  const stateLevelKeywords = [
+    "state capitol",
+    "state capitol building",
+    "state museum",
+    "state library",
+    "state courthouse",
+    "department of health",
+    "department of transportation",
+    "state university",
+    "department of education",
+    "state archives",
+    "state fairgrounds",
+    "visitor center"
+  ];
+  const queries = stateLevelKeywords.map((keyword) => `${keyword}, ${stateName}, USA`);
+
+  for (const cityName of cityNames) {
+    for (const query of buildSearchQueries(stateName, cityName)) {
+      queries.push(query);
+    }
+  }
+
+  return [...new Set(queries)];
 }
 
 function pickStateCode(address) {
@@ -174,20 +266,17 @@ function normalizeAddressRecord(result, stateCode, stateName, fallbackCity, inde
 async function searchPlaces(query) {
   const url = new URL("https://nominatim.openstreetmap.org/search");
   url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("limit", "6");
+  url.searchParams.set("limit", "8");
   url.searchParams.set("addressdetails", "1");
   url.searchParams.set("q", query);
 
-  const response = await fetch(url, {
-    headers: {
-      "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent": USER_AGENT
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Nominatim search failed for "${query}": ${response.status} ${response.statusText}`);
-  }
+  const response = await fetchWithRetry(
+    url,
+    {
+      headers: buildRequestHeaders()
+    },
+    `Nominatim search for "${query}"`
+  );
 
   return response.json();
 }
@@ -203,6 +292,36 @@ function buildRegionEntries(states) {
         ja: state.name.ja
       }
     }));
+}
+
+function sortAddresses(addresses) {
+  return [...addresses].sort((left, right) => {
+    const regionCompare = left.regionCode.localeCompare(right.regionCode);
+
+    if (regionCompare !== 0) {
+      return regionCompare;
+    }
+
+    const cityCompare = left.city.localeCompare(right.city);
+
+    if (cityCompare !== 0) {
+      return cityCompare;
+    }
+
+    return left.id.localeCompare(right.id);
+  });
+}
+
+function loadExistingAddresses() {
+  try {
+    const existingModule = require(path.resolve("src/data/us-generated.ts"));
+    return Array.isArray(existingModule.usGeneratedAddresses)
+      ? existingModule.usGeneratedAddresses
+      : [];
+  } catch (error) {
+    console.warn("Unable to load existing US generated data:", error instanceof Error ? error.message : error);
+    return [];
+  }
 }
 
 function renderValue(value, depth = 0) {
@@ -240,23 +359,36 @@ async function main() {
   const { usDataUrl, usCitiesUrl } = await discoverReferenceUrls();
   const [usData, usCities] = await Promise.all([fetchJson(usDataUrl), fetchJson(usCitiesUrl)]);
   const regions = buildRegionEntries(usData.states);
+  const targetRegions = requestedStateSet.size
+    ? regions.filter((region) => requestedStateSet.has(region.code))
+    : regions;
   const addresses = [];
 
-  for (const region of regions) {
+  if (requestedStateSet.size && targetRegions.length !== requestedStateSet.size) {
+    const discovered = new Set(targetRegions.map((region) => region.code));
+    const missing = requestedStateCodes.filter((code) => !discovered.has(code));
+    throw new Error(`Unknown state codes: ${missing.join(", ")}`);
+  }
+
+  for (const region of targetRegions) {
     const stateCode = region.code;
     const stateName = region.name.en;
-    const addressTarget = HIGH_PRIORITY_STATE_TARGETS[stateCode] ?? DEFAULT_ADDRESS_TARGET_PER_STATE;
+    const addressTarget = TAX_FREE_STATE_CODES.has(stateCode)
+      ? TAX_FREE_ADDRESS_TARGET_PER_STATE
+      : DEFAULT_ADDRESS_TARGET_PER_STATE;
     const cityPool = usCities.states?.[stateCode]?.cities ?? [];
     const dedupe = new Set();
     const stateAddresses = [];
-    const cityNames = cityPool.map((city) => city.name.en);
-    const searchQueue = [];
-
-    for (const cityName of cityNames) {
-      for (const query of buildSearchQueries(stateName, cityName)) {
-        searchQueue.push({ cityName, query });
-      }
-    }
+    const cityNames = [
+      ...new Set([
+        ...cityPool.map((city) => city.name.en),
+        ...(EXTRA_CITY_NAMES_BY_STATE[stateCode] ?? [])
+      ])
+    ];
+    const searchQueue = buildStateSearchQueries(stateName, cityNames).map((query) => ({
+      cityName: cityNames.find((cityName) => query.includes(cityName)) ?? stateName,
+      query
+    }));
 
     if (!searchQueue.length) {
       console.warn(`Skipping ${stateCode}: no city pool discovered`);
@@ -315,12 +447,21 @@ async function main() {
     }
   }
 
-  const output = `// This file is auto-generated by scripts/build-us-address-data.mjs\n\nexport const usGeneratedRegions = ${renderValue(regions)};\n\nexport const usGeneratedAddresses = ${renderValue(addresses)};\n`;
+  const nextAddresses = requestedStateSet.size
+    ? sortAddresses([
+        ...loadExistingAddresses().filter((entry) => !requestedStateSet.has(entry.regionCode)),
+        ...addresses
+      ])
+    : sortAddresses(addresses);
+
+  const output = `// This file is auto-generated by scripts/build-us-address-data.mjs\n\nexport const usGeneratedRegions = ${renderValue(regions)};\n\nexport const usGeneratedAddresses = ${renderValue(nextAddresses)};\n`;
   const outputPath = path.resolve("src/data/us-generated.ts");
 
   await fs.writeFile(outputPath, output, "utf8");
 
-  console.log(`Wrote ${regions.length} regions and ${addresses.length} addresses to ${outputPath}`);
+  console.log(
+    `Wrote ${regions.length} regions and ${nextAddresses.length} addresses to ${outputPath}`
+  );
 }
 
 await main();

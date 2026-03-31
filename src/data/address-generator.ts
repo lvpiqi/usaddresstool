@@ -5,6 +5,7 @@ import {
 } from "./countries";
 import {
   getRuntimeAddresses,
+  materializeRuntimeAddress,
   getRuntimeRegionName,
   getRuntimeRegions,
   type GeneratorProfile
@@ -390,11 +391,17 @@ export function generateAddress({
   const resolvedSeed = seed || createSeed();
   const random = createSeededRandom(`${countrySlug}:${regionCode || "random"}:${resolvedSeed}`);
   const pool = resolvePool(country, profile, regionCode, excludeEntryIds);
-  const entry = pickRandom(pool, random);
+  const baseEntry = pickRandom(pool, random);
 
-  if (!entry) {
+  if (!baseEntry) {
     throw new Error(`Unable to resolve an address seed for ${countrySlug}`);
   }
+
+  const entry = materializeRuntimeAddress(
+    country,
+    baseEntry,
+    `${profile}:${regionCode || "random"}:${resolvedSeed}`
+  );
 
   const bank = getNameBank(country.code);
   const gender: GeneratedGender = random() > 0.5 ? "female" : "male";

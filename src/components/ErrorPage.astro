@@ -26,14 +26,102 @@ const strings = ui[locale];
 const getStatusPath = (lang: Locale, code: 403 | 404 | 500 | 503) =>
   lang === "zh" ? `/${code}/` : `/${lang}/${code}/`;
 
-const alternatePaths = Object.fromEntries(
-  locales.map((lang) => [lang, getStatusPath(lang, statusCode)])
-) as Record<Locale, string>;
+const statusCopy = {
+  403: {
+    title: {
+      zh: "页面暂不可用",
+      en: "This Page Is Not Available",
+      ja: "このページは現在利用できません"
+    },
+    description: {
+      zh: "当前请求无法访问这个页面，可能是访问规则、部署配置或临时限制导致的。",
+      en: "The current request cannot access this page because of an access rule, deployment setting, or temporary restriction.",
+      ja: "アクセスルール、デプロイ設定、または一時的な制限により、このページへアクセスできません。"
+    },
+    note: {
+      zh: "如果这是意外结果，建议先检查访问控制、Cloudflare 配置和 Worker 路由。",
+      en: "If this is unexpected, review your access controls, Cloudflare settings, and Worker routes first.",
+      ja: "想定外であれば、アクセス制御、Cloudflare 設定、Worker ルートを先に確認してください。"
+    }
+  },
+  404: {
+    title: {
+      zh: "页面不存在",
+      en: "Page Not Found",
+      ja: "ページが見つかりません"
+    },
+    description: {
+      zh: "这个链接可能已经变更、删除，或者输入的 URL 不正确。",
+      en: "The link may have changed, been removed, or the URL may be incorrect.",
+      ja: "リンクが変更・削除されたか、URL が正しくない可能性があります。"
+    },
+    note: {
+      zh: "如果这是站内链接跳转过来的，建议顺手修复对应的失效入口。",
+      en: "If this came from an internal link, it is worth fixing the broken entry point in the site structure.",
+      ja: "サイト内リンクから来た場合は、壊れている導線を修正するのが安全です。"
+    }
+  },
+  500: {
+    title: {
+      zh: "服务器临时错误",
+      en: "Temporary Server Error",
+      ja: "一時的なサーバーエラー"
+    },
+    description: {
+      zh: "请求已经到达站点，但页面暂时没有成功渲染。",
+      en: "The request reached the site, but the page could not be rendered successfully right now.",
+      ja: "リクエストは到達しましたが、ページを正常に描画できませんでした。"
+    },
+    note: {
+      zh: "可以先回到稳定的工具页，或稍后刷新重试。",
+      en: "You can return to a stable tool page first or reload later and try again.",
+      ja: "いったん安定しているツールページへ戻るか、少し待って再読み込みしてください。"
+    }
+  },
+  503: {
+    title: {
+      zh: "服务暂时不可用",
+      en: "Service Temporarily Unavailable",
+      ja: "サービスは一時的に利用できません"
+    },
+    description: {
+      zh: "站点可能正在维护、预热，或等待上游依赖恢复。",
+      en: "The site may be under maintenance, warming up, or waiting on an upstream dependency.",
+      ja: "メンテナンス中、ウォームアップ中、または上流依存の復旧待ちの可能性があります。"
+    },
+    note: {
+      zh: "这种状态通常是暂时的，稍等片刻后重试往往就会恢复。",
+      en: "This state is often temporary, so a short wait and retry is usually enough.",
+      ja: "この状態は一時的なことが多く、少し待ってから再試行すると戻る場合があります。"
+    }
+  }
+}[statusCode];
 
-const taxFreeLabel = {
-  zh: "美国免税州地址页",
-  en: "US tax-free address page",
-  ja: "米国免税州住所ページ"
+const actionCopy = {
+  zh: {
+    eyebrow: "快速返回",
+    title: "这些页面可以继续访问",
+    description: "先回到稳定的工具页、目录页或内容页，通常能继续完成浏览或测试。",
+    primary: "返回首页",
+    secondary: "国家目录",
+    retry: "刷新页面"
+  },
+  en: {
+    eyebrow: "Quick paths",
+    title: "Good places to continue",
+    description: "Start from a stable tool page, directory, or content page and continue from there.",
+    primary: "Back to home",
+    secondary: "Country directory",
+    retry: "Reload page"
+  },
+  ja: {
+    eyebrow: "クイックパス",
+    title: "続けやすいページ",
+    description: "安定しているツールページ、一覧ページ、記事ページへ戻ると、そのまま閲覧を続けやすくなります。",
+    primary: "ホームへ戻る",
+    secondary: "国別ディレクトリ",
+    retry: "再読み込み"
+  }
 }[locale];
 
 const usCountry = getCountryBySlug("us");
@@ -43,165 +131,58 @@ if (!usCountry || !jpCountry) {
   throw new Error("Required country records for error pages are missing");
 }
 
-const pageCopy = {
-  403: {
-    title: {
-      zh: "当前页面不可访问",
-      en: "This Page Is Not Available",
-      ja: "このページにはアクセスできません"
-    },
-    description: {
-      zh: "这个页面当前没有开放访问，或当前请求不满足访问条件。",
-      en: "This page is currently restricted, or the current request does not meet the access requirements.",
-      ja: "このページは現在公開されていないか、今回のリクエスト条件ではアクセスできません。"
-    },
-    note: {
-      zh: "如果这不是预期情况，建议检查访问控制、部署规则或 Worker 路由配置。",
-      en: "If this is unexpected, review your access rules, deployment settings, or Worker route configuration.",
-      ja: "想定外なら、アクセス制御、デプロイ設定、または Worker ルート構成を確認してください。"
-    },
-    secondaryLabel: {
-      zh: "浏览国家页",
-      en: "Browse country pages",
-      ja: "国別ページを見る"
-    },
-    secondaryHref: getCountriesPath(locale)
-  },
-  404: {
-    title: {
-      zh: "页面不存在",
-      en: "Page Not Found",
-      ja: "ページが見つかりません"
-    },
-    description: {
-      zh: "你打开的链接可能已经失效、被移动，或者输入地址时出现了错误。",
-      en: "The link may be outdated, the page may have moved, or the address may have been entered incorrectly.",
-      ja: "リンクが古いか、ページが移動されたか、URL の入力に誤りがある可能性があります。"
-    },
-    note: {
-      zh: "如果这是站内跳转过来的页面，后续建议把失效内链也一并修掉。",
-      en: "If this came from an internal link, it is worth fixing the broken link in the site structure as well.",
-      ja: "サイト内リンクから来た場合は、あわせて切れた内部リンクも修正すると安全です。"
-    },
-    secondaryLabel: {
-      zh: "浏览国家页",
-      en: "Browse country pages",
-      ja: "国別ページを見る"
-    },
-    secondaryHref: getCountriesPath(locale)
-  },
-  500: {
-    title: {
-      zh: "服务器暂时出错",
-      en: "Temporary Server Error",
-      ja: "サーバーで一時的なエラーが発生しました"
-    },
-    description: {
-      zh: "请求已经到达站点，但当前页面暂时无法正常响应。",
-      en: "The request reached the site, but the page could not be rendered successfully right now.",
-      ja: "リクエストはサイトに届きましたが、現在このページを正常に表示できません。"
-    },
-    note: {
-      zh: "你可以先返回核心工具页继续使用，或者直接重新加载当前页面。",
-      en: "You can return to a stable generator page first, or simply reload this page and try again.",
-      ja: "まず安定しているツールページへ戻るか、このページを再読み込みしてください。"
-    },
-    secondaryLabel: {
-      zh: "查看博客",
-      en: "Open the blog",
-      ja: "ブログを見る"
-    },
-    secondaryHref: getBlogIndexPath(locale)
-  },
-  503: {
-    title: {
-      zh: "服务暂时不可用",
-      en: "Service Temporarily Unavailable",
-      ja: "サービスは一時的に利用できません"
-    },
-    description: {
-      zh: "站点可能正在维护、冷启动，或者依赖服务暂时不可用。",
-      en: "The site may be warming up, under maintenance, or waiting on a temporary upstream dependency.",
-      ja: "サイトがウォームアップ中か、メンテナンス中か、一時的な依存サービス障害の可能性があります。"
-    },
-    note: {
-      zh: "这种情况通常在稍后刷新后就能恢复，不一定是永久故障。",
-      en: "In many cases this clears on its own after a short wait, so it is not always a permanent failure.",
-      ja: "少し待ってから再読み込みすると解消することが多く、恒久的な障害とは限りません。"
-    },
-    secondaryLabel: {
-      zh: "查看博客",
-      en: "Open the blog",
-      ja: "ブログを見る"
-    },
-    secondaryHref: getBlogIndexPath(locale)
-  }
-}[statusCode];
-
-const quickCopy = {
-  zh: {
-    eyebrow: "快速返回",
-    title: "你可能想继续访问这些页面",
-    description: "下面这些入口覆盖了首页工具、热门国家页和内容目录，适合从错误页直接回到主流程。",
-    primary: "返回首页",
-    retry: "重新加载"
-  },
-  en: {
-    eyebrow: "Quick paths",
-    title: "These pages are a good place to continue",
-    description: "Use these links to jump back into the main tool flow, popular country pages, or content directories.",
-    primary: "Back to home",
-    retry: "Reload page"
-  },
-  ja: {
-    eyebrow: "クイック導線",
-    title: "ここから主要ページへ戻れます",
-    description: "トップのツールページ、人気国ページ、コンテンツ一覧へすぐ戻れる導線を用意しています。",
-    primary: "ホームへ戻る",
-    retry: "再読み込み"
-  }
-}[locale];
-
 const quickLinks = [
   {
     title: usCountry.heading[locale],
     description: {
-      zh: "返回首页，继续按州生成美国地址和 ZIP Code 结果。",
-      en: "Return to the home page and keep generating US addresses by state and ZIP code.",
-      ja: "トップページへ戻り、州別のアメリカ住所と ZIP Code 生成を続けられます。"
+      zh: "回到美国首页工具，继续按州生成地址结果。",
+      en: "Return to the US home page and keep generating state-based results.",
+      ja: "US ホームページに戻って州別結果の生成を続けられます。"
     }[locale],
     href: getHomePath(locale)
   },
   {
-    title: taxFreeLabel,
+    title: {
+      zh: "美国免税州",
+      en: "US tax-free page",
+      ja: "US 免税州ページ"
+    }[locale],
     description: {
-      zh: "直接进入美国免税州地址页，查看 5 个免税州筛选结果。",
-      en: "Open the dedicated tax-free page and filter through the 5 sales-tax-free states.",
-      ja: "米国免税州ページへ移動し、5 つの免税州で絞り込めます。"
+      zh: "进入 5 个免税州工具页继续测试结账场景。",
+      en: "Open the 5-state tax-free page for checkout and pricing scenarios.",
+      ja: "5 つの免税州ページでチェックアウト系の確認を続けられます。"
     }[locale],
     href: getTaxFreePath(locale)
   },
   {
     title: jpCountry.heading[locale],
     description: {
-      zh: "快速回到日本地址生成器，继续查看都道府县和邮编格式。",
-      en: "Jump to the Japan generator and continue exploring prefecture and postal-code formats.",
-      ja: "日本住所ジェネレーターへ戻り、都道府県と郵便番号形式を確認できます。"
+      zh: "切换到日本页，继续查看多语言地址顺序。",
+      en: "Jump to the Japan page and keep exploring multilingual address order.",
+      ja: "日本ページへ移動して多言語の住所順序を確認できます。"
     }[locale],
     href: getCountryPath(locale, "jp")
   },
   {
-    title: strings.nav.countries,
-    description: strings.directory.countriesDescription,
-    href: getCountriesPath(locale)
+    title: {
+      zh: "博客",
+      en: "Blog",
+      ja: "ブログ"
+    }[locale],
+    description: {
+      zh: "如果你只是想继续阅读说明内容，可以先回到博客目录。",
+      en: "If you mainly want explanatory content, the blog index is a safe place to continue.",
+      ja: "説明記事を読み進めたい場合は、ブログ一覧へ戻るのが安全です。"
+    }[locale],
+    href: getBlogIndexPath(locale)
   }
 ];
 ---
 
 <BaseLayout
   locale={locale}
-  title={`${statusCode} ${pageCopy.title[locale]}`}
-  description={pageCopy.description[locale]}
+  title={`${statusCode} ${statusCopy.title[locale]}`}
+  description={statusCopy.description[locale]}
   canonicalPath={getStatusPath(locale, statusCode)}
   alternates={locales.map((lang) => ({
     hreflang: localeMeta[lang].htmlLang,
@@ -242,20 +223,20 @@ const quickLinks = [
         <section class="status-card">
           <p class="eyebrow">HTTP {statusCode}</p>
           <p class="status-code" aria-hidden="true">{statusCode}</p>
-          <h1>{pageCopy.title[locale]}</h1>
-          <p class="hero__copy">{pageCopy.description[locale]}</p>
-          <p class="status-note">{pageCopy.note[locale]}</p>
+          <h1>{statusCopy.title[locale]}</h1>
+          <p class="hero__copy">{statusCopy.description[locale]}</p>
+          <p class="status-note">{statusCopy.note[locale]}</p>
 
           <div class="status-actions">
             <a class="button button--primary" href={getHomePath(locale)}>
-              {quickCopy.primary}
+              {actionCopy.primary}
             </a>
-            <a class="button button--ghost" href={pageCopy.secondaryHref}>
-              {pageCopy.secondaryLabel[locale]}
+            <a class="button button--ghost" href={getCountriesPath(locale)}>
+              {actionCopy.secondary}
             </a>
             {statusCode >= 500 ? (
               <button class="button button--ghost" data-reload-page type="button">
-                {quickCopy.retry}
+                {actionCopy.retry}
               </button>
             ) : null}
           </div>
@@ -263,9 +244,9 @@ const quickLinks = [
 
         <section class="status-links">
           <div class="section-heading">
-            <p class="eyebrow">{quickCopy.eyebrow}</p>
-            <h2>{quickCopy.title}</h2>
-            <p>{quickCopy.description}</p>
+            <p class="eyebrow">{actionCopy.eyebrow}</p>
+            <h2>{actionCopy.title}</h2>
+            <p>{actionCopy.description}</p>
           </div>
 
           <div class="card-grid">

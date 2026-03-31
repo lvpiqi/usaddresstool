@@ -6,8 +6,10 @@
   "scripts": {
     "build:us-data": "node scripts/build-us-address-data.mjs",
     "dev": "astro dev",
-    "build": "rimraf dist && astro build",
-    "preview": "astro preview"
+    "build": "rimraf dist && astro build && node scripts/postbuild-cloudflare.mjs",
+    "preview": "astro preview",
+    "cf:dev": "npm run build && wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.4.0",

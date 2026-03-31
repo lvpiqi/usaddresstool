@@ -7,8 +7,11 @@ import { countries } from "../data/countries";
 import { withCountryContent } from "../data/country-content";
 import {
   alternateLocaleLinks,
+  getBlogIndexPath,
   getBlogPath,
+  getCountriesPath,
   getCountryPath,
+  getFormatIndexPath,
   getFormatPath,
   getHomePath,
   ui,
@@ -28,23 +31,277 @@ const strings = ui[locale];
 const pageCountries = countries.map((country) => withCountryContent(country));
 const pageBlogPosts = getAllBlogPosts();
 
+const getFormatTitle = (country: (typeof pageCountries)[number]) =>
+  ({
+    zh: `${country.name.zh}地址格式`,
+    en: `${country.name.en} Address Format`,
+    ja: `${country.name.ja}の住所形式`
+  })[locale];
+
+const directoryItems =
+  kind === "countries"
+    ? pageCountries.map((country) => ({
+        title: country.heading[locale],
+        description: country.directoryExcerpt[locale],
+        href: getCountryPath(locale, country.slug)
+      }))
+    : kind === "blog"
+      ? pageBlogPosts.map((post) => ({
+          title: post.title[locale],
+          description: post.description[locale],
+          href: getBlogPath(locale, post.slug)
+        }))
+      : pageCountries.map((country) => ({
+          title: getFormatTitle(country),
+          description: country.formatRules[locale][0],
+          href: getFormatPath(locale, country.slug)
+        }));
+
 const config = {
   countries: {
     title: strings.nav.countries,
-    description: strings.directory.countriesDescription,
-    breadcrumbName: strings.nav.countries
+    description: {
+      zh: "浏览美国、日本、加拿大、香港、英国和印度地址生成页面，对比州或地区筛选、邮编写法、字段顺序和复制方式。",
+      en: "Browse country address generator pages for the US, Japan, Canada, Hong Kong, the UK, and India and compare filters, postal-code rules, and field order.",
+      ja: "米国、日本、カナダ、香港、英国、インドの住所ジェネレーターページを一覧し、地域フィルター、郵便番号ルール、項目順序を比較できます。"
+    }[locale],
+    breadcrumbName: strings.nav.countries,
+    introEyebrow: {
+      zh: "目录说明",
+      en: "Directory overview",
+      ja: "ディレクトリ概要"
+    }[locale],
+    introTitle: {
+      zh: "国家页适合承接哪类搜索",
+      en: "What the country pages are built to capture",
+      ja: "国別ページが受ける検索意図"
+    }[locale],
+    introParagraphs: {
+      zh: [
+        "国家页最适合承接直接生成地址的搜索需求，比如美国地址生成器、日本地址生成器、英国地址生成器这类动作型关键词。",
+        "每个国家页都围绕本地字段、邮编体系、地区筛选和可复制结果展开，因此这里更像工具入口目录，而不是单纯的链接集合。"
+      ],
+      en: [
+        "Country pages are best for action-driven queries such as US address generator, Japan address generator, or UK address generator.",
+        "Each page is organized around local fields, postal systems, regional filters, and copy-ready results, so this directory acts as a tool hub rather than a plain list."
+      ],
+      ja: [
+        "国別ページは、US address generator や Japan address generator のような、今すぐ生成したい検索意図を受けるのに向いています。",
+        "各ページは地域項目、郵便番号体系、フィルター、コピーしやすい結果を軸に作られているため、この一覧は単なるリンク集ではなくツールハブとして機能します。"
+      ]
+    }[locale],
+    checklistEyebrow: {
+      zh: "使用建议",
+      en: "How to use it",
+      ja: "使い方のヒント"
+    }[locale],
+    checklistTitle: {
+      zh: "浏览国家目录时可以先看这几点",
+      en: "What to compare first in the country directory",
+      ja: "国別ディレクトリで先に見るポイント"
+    }[locale],
+    checklist: {
+      zh: [
+        "先看该国家的地区筛选是不是贴近本地使用习惯。",
+        "再看邮编、postcode、PIN Code 等字段名称是否符合本地搜索表达。",
+        "最后对比完整地址顺序和字段级复制是否满足你的测试流程。"
+      ],
+      en: [
+        "Start by checking whether the regional filter matches how that market normally organizes addresses.",
+        "Then compare field naming such as ZIP code, postcode, or PIN code against local search language.",
+        "Finally review full-address order and field-level copy behavior for your workflow."
+      ],
+      ja: [
+        "まず、その国の地域フィルターが現地の住所理解に合っているかを見ます。",
+        "次に ZIP code、postcode、PIN code などの項目名が現地表現に合っているかを確認します。",
+        "最後に完全住所の順序と項目コピーが自分の検証フローに合うかを比較します。"
+      ]
+    }[locale],
+    gridTitle: {
+      zh: "国家页入口",
+      en: "Country page entry points",
+      ja: "国別ページ一覧"
+    }[locale],
+    gridDescription: {
+      zh: "从这里进入各国家地址生成器页面，继续做筛选、复制、保存和分享测试。",
+      en: "Use these entry points to move into each country generator page for filtering, copy, save, and share testing.",
+      ja: "ここから各国の住所ジェネレーターへ進み、フィルター、コピー、保存、共有の確認を続けられます。"
+    }[locale]
   },
   blog: {
     title: strings.nav.blog,
-    description: strings.directory.blogDescription,
-    breadcrumbName: strings.nav.blog
+    description: {
+      zh: "阅读围绕地址生成器、ZIP Code、postcode、PIN Code、多语言地址顺序和表单验证场景的工具型文章。",
+      en: "Read tool-focused articles about address generators, ZIP codes, postcodes, PIN codes, multilingual address order, and form validation flows.",
+      ja: "住所ジェネレーター、ZIP Code、postcode、PIN Code、多言語住所順序、フォーム検証フローに関する実践記事をまとめています。"
+    }[locale],
+    breadcrumbName: strings.nav.blog,
+    introEyebrow: {
+      zh: "内容说明",
+      en: "Content overview",
+      ja: "コンテンツ概要"
+    }[locale],
+    introTitle: {
+      zh: "博客页负责解释型搜索",
+      en: "The blog handles explanatory search intent",
+      ja: "ブログは説明型の検索意図を受ける"
+    }[locale],
+    introParagraphs: {
+      zh: [
+        "博客页主要承接“怎么写美国地址”“ZIP Code 和 Postal Code 有什么区别”“为什么测试需要真实格式地址”这类信息型搜索。",
+        "它的价值不是脱离工具站单独存在，而是把解释型流量自然导向国家页、格式页和具体生成器。"
+      ],
+      en: [
+        "The blog is designed for informational searches such as how to write a US address, the difference between ZIP code and postal code, or why testing needs realistic address structure.",
+        "Its value comes from guiding that explanatory traffic back into the format guides and generator pages."
+      ],
+      ja: [
+        "ブログは、US 住所の書き方、ZIP Code と postal code の違い、なぜ実用的な住所形式が必要かといった情報検索を受け止める役割を持ちます。",
+        "ここで得た説明を、国別ページや形式ガイド、実際のジェネレーターへ自然につなげるのがこの一覧の価値です。"
+      ]
+    }[locale],
+    checklistEyebrow: {
+      zh: "阅读路径",
+      en: "Reading path",
+      ja: "読み進め方"
+    }[locale],
+    checklistTitle: {
+      zh: "从博客进入工具页的推荐路径",
+      en: "Recommended path from article to tool page",
+      ja: "記事からツールページへの流れ"
+    }[locale],
+    checklist: {
+      zh: [
+        "先读术语或格式文章，弄清字段顺序和命名差异。",
+        "再跳转到国家页，用相同概念去生成实际结果。",
+        "最后把文章和工具页一起加入内链路径，增强页面主题关联。"
+      ],
+      en: [
+        "Start with terminology or format posts to understand field order and naming differences.",
+        "Then move into a country page and generate results using the same concepts.",
+        "Keep the article and tool page connected through internal links to strengthen topical relevance."
+      ],
+      ja: [
+        "まず用語や形式の記事で、項目順序や呼び方の違いを理解します。",
+        "次に国別ページへ移動し、同じテーマで実際の結果を生成します。",
+        "記事とツールページを内部リンクでつなぐことで、テーマの関連性を強められます。"
+      ]
+    }[locale],
+    gridTitle: {
+      zh: "博客文章列表",
+      en: "Blog article list",
+      ja: "記事一覧"
+    }[locale],
+    gridDescription: {
+      zh: "每篇文章都围绕站点工具、地址格式和测试场景展开，并带有回到工具页的内链。",
+      en: "Each article stays focused on the tool site, address format, and testing workflows, with internal links back to the generators.",
+      ja: "各記事はツール、住所形式、テストフローに絞っており、ジェネレーターへ戻る内部リンクも備えています。"
+    }[locale]
   },
   formats: {
     title: strings.nav.formats,
-    description: strings.directory.formatDescription,
-    breadcrumbName: strings.nav.formats
+    description: {
+      zh: "查看美国、日本、英国、加拿大、香港和印度的地址格式、邮编规则、地区字段写法和表单填写提示。",
+      en: "Review address format pages for the US, Japan, the UK, Canada, Hong Kong, and India, including postal rules, region fields, and form-entry notes.",
+      ja: "米国、日本、英国、カナダ、香港、インドの住所形式ページを一覧し、郵便番号ルール、地域項目、フォーム入力時の注意点を確認できます。"
+    }[locale],
+    breadcrumbName: strings.nav.formats,
+    introEyebrow: {
+      zh: "格式目录说明",
+      en: "Format index overview",
+      ja: "形式インデックス概要"
+    }[locale],
+    introTitle: {
+      zh: "格式页负责解释地址顺序与字段规则",
+      en: "Format pages explain structure and field rules",
+      ja: "形式ページは住所構造と項目ルールを説明する"
+    }[locale],
+    introParagraphs: {
+      zh: [
+        "地址格式目录更适合承接“美国地址格式”“英国 postcode 怎么写”“日本地址顺序”这类解释型关键词。",
+        "和国家页相比，格式页的重点不是立即生成，而是帮助用户先看懂该国家地址的顺序、地区字段和邮编体系。"
+      ],
+      en: [
+        "The format directory is better aligned with explanatory queries such as US address format, how UK postcode works, or Japanese address order.",
+        "Compared with the country pages, these pages focus less on generation and more on helping readers understand order, regional fields, and postal systems."
+      ],
+      ja: [
+        "住所形式ディレクトリは、US address format、UK postcode の書き方、日本住所の順序といった説明型キーワードに向いています。",
+        "国別ページよりも、すぐに生成することではなく、住所順序、地域項目、郵便番号体系を理解してもらうことが中心です。"
+      ]
+    }[locale],
+    checklistEyebrow: {
+      zh: "查看重点",
+      en: "What to look for",
+      ja: "確認ポイント"
+    }[locale],
+    checklistTitle: {
+      zh: "浏览格式目录时建议先对比这些内容",
+      en: "What to compare first in the format index",
+      ja: "形式ディレクトリで先に比べたい点"
+    }[locale],
+    checklist: {
+      zh: [
+        "地址顺序是从门牌号开始，还是从地区层级开始。",
+        "邮编字段是 ZIP Code、postcode、postal code 还是 PIN Code。",
+        "地区字段更常见的是州、省份、都道府县还是区域。"
+      ],
+      en: [
+        "Whether the address order starts from house detail or from larger regional hierarchy.",
+        "Whether the postal field is labeled as ZIP code, postcode, postal code, or PIN code.",
+        "Whether the regional field is usually a state, province, prefecture, or district-like layer."
+      ],
+      ja: [
+        "住所順序が番地側から始まるのか、広い地域階層から始まるのか。",
+        "郵便番号項目が ZIP Code、postcode、postal code、PIN code のどれで表現されるか。",
+        "地域項目が州、省、都道府県、区域のどれに近いか。"
+      ]
+    }[locale],
+    gridTitle: {
+      zh: "地址格式页列表",
+      en: "Address format pages",
+      ja: "住所形式ページ一覧"
+    }[locale],
+    gridDescription: {
+      zh: "进入具体国家格式页后，可以继续查看示例地址、FAQ 和通往生成器的内链。",
+      en: "From each format page, you can continue into examples, FAQ sections, and internal links back to the generator.",
+      ja: "各形式ページでは、住所例、FAQ、ジェネレーターへの内部リンクまで続けて確認できます。"
+    }[locale]
   }
 }[kind];
+
+const relatedDirectories = [
+  {
+    key: "countries",
+    title: strings.nav.countries,
+    description: {
+      zh: "回到国家地址页，直接进入各国家生成器工具。",
+      en: "Return to the country pages and jump into each generator.",
+      ja: "国別ページへ戻り、各ジェネレーターへ進めます。"
+    }[locale],
+    href: getCountriesPath(locale)
+  },
+  {
+    key: "blog",
+    title: strings.nav.blog,
+    description: {
+      zh: "进入解释型文章，补充地址格式和字段命名背景。",
+      en: "Open explanatory articles for more address-format and field-naming context.",
+      ja: "説明記事に進み、住所形式や項目名の背景を補えます。"
+    }[locale],
+    href: getBlogIndexPath(locale)
+  },
+  {
+    key: "formats",
+    title: strings.nav.formats,
+    description: {
+      zh: "查看各国家的地址格式、邮编规则和填写提示。",
+      en: "Review country-specific format rules, postal systems, and form tips.",
+      ja: "各国の住所形式、郵便番号ルール、入力時の注意点を確認できます。"
+    }[locale],
+    href: getFormatIndexPath(locale)
+  }
+].filter((entry) => entry.key !== kind);
 
 const alternates = alternateLocaleLinks(alternatePaths);
 const schema = [
@@ -54,6 +311,16 @@ const schema = [
     name: config.title,
     description: config.description,
     url: toAbsoluteUrl(canonicalPath, Astro.site)
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: directoryItems.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.title,
+      url: toAbsoluteUrl(item.href, Astro.site)
+    }))
   },
   {
     "@context": "https://schema.org",
@@ -95,40 +362,77 @@ const schema = [
       </div>
     </section>
 
+    <section class="section section--compact">
+      <div class="container content-grid">
+        <article class="content-card">
+          <p class="eyebrow">{config.introEyebrow}</p>
+          <h2>{config.introTitle}</h2>
+          {config.introParagraphs.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </article>
+
+        <article class="content-card">
+          <p class="eyebrow">{config.checklistEyebrow}</p>
+          <h2>{config.checklistTitle}</h2>
+          <ul class="detail-list">
+            {config.checklist.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    </section>
+
     <section class="section">
-      <div class="container card-grid">
-        {kind === "countries" &&
-          pageCountries.map((country) => (
-            <article class="link-card">
-              <h2>{country.heading[locale]}</h2>
-              <p>{country.directoryExcerpt[locale]}</p>
-              <a class="text-link" href={getCountryPath(locale, country.slug)}>
-                {strings.common.readMore}
-              </a>
-            </article>
-          ))}
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{config.title}</p>
+          <h2>{config.gridTitle}</h2>
+          <p>{config.gridDescription}</p>
+        </div>
 
-        {kind === "blog" &&
-          pageBlogPosts.map((post) => (
+        <div class="card-grid">
+          {directoryItems.map((item) => (
             <article class="link-card">
-              <h2>{post.title[locale]}</h2>
-              <p>{post.description[locale]}</p>
-              <a class="text-link" href={getBlogPath(locale, post.slug)}>
+              <h2>{item.title}</h2>
+              <p>{item.description}</p>
+              <a class="text-link" href={item.href}>
                 {strings.common.readMore}
               </a>
             </article>
           ))}
+        </div>
+      </div>
+    </section>
 
-        {kind === "formats" &&
-          pageCountries.map((country) => (
+    <section class="section section--compact">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{strings.common.relatedPosts}</p>
+          <h2>{{
+            zh: "继续浏览站内相关目录",
+            en: "Continue into related site sections",
+            ja: "関連ディレクトリへ進む"
+          }[locale]}</h2>
+          <p>{{
+            zh: "把目录页、格式页、博客和国家工具页连起来，站内主题会更清晰，也更方便用户连续浏览。",
+            en: "Connecting directories, format guides, blog posts, and generator pages creates a clearer topical path for both users and search engines.",
+            ja: "ディレクトリ、形式ガイド、ブログ、ジェネレーターをつなぐことで、ユーザーにも検索エンジンにも分かりやすいテーマ導線になります。"
+          }[locale]}</p>
+        </div>
+
+        <div class="card-grid">
+          {relatedDirectories.map((entry) => (
             <article class="link-card">
-              <h2>{country.heading[locale]}</h2>
-              <p>{country.formatRules[locale][0]}</p>
-              <a class="text-link" href={getFormatPath(locale, country.slug)}>
+              <h3>{entry.title}</h3>
+              <p>{entry.description}</p>
+              <a class="text-link" href={entry.href}>
                 {strings.common.readMore}
               </a>
             </article>
           ))}
+        </div>
       </div>
     </section>
   </main>

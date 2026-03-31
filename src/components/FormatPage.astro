@@ -2,11 +2,14 @@
 import Footer from "./Footer.astro";
 import Header from "./Header.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getBlogPost } from "../data/blog";
 import { getCountryBySlug } from "../data/countries";
 import { withCountryContent } from "../data/country-content";
 import {
   alternateLocaleLinks,
+  getBlogPath,
   getCountryPath,
+  getFormatIndexPath,
   getFormatPath,
   getHomePath,
   locales,
@@ -28,24 +31,112 @@ if (!country) {
 }
 
 const pageCountry = withCountryContent(country);
-
 const canonicalPath = getFormatPath(locale, country.slug);
 const alternatePaths = Object.fromEntries(
   locales.map((lang) => [lang, getFormatPath(lang, country.slug)])
 ) as Record<Locale, string>;
 const strings = ui[locale];
+const relatedPosts = pageCountry.relatedPosts
+  .map((slug) => getBlogPost(slug))
+  .filter(Boolean);
 const formatTitle = {
   zh: `${pageCountry.name[locale]}地址格式`,
   en: `${pageCountry.name[locale]} Address Format`,
   ja: `${pageCountry.name[locale]}の住所形式`
 }[locale];
+const formatMetaDescription = {
+  zh: `查看${pageCountry.name.zh}地址格式、${pageCountry.regionLabel.zh}字段写法、邮编规则和表单填写提示，适合测试、表单验证与地址格式研究。`,
+  en: `Learn the ${pageCountry.name.en} address format, ${pageCountry.regionLabel.en.toLowerCase()} naming, postal-code rules, and form-entry tips for testing and form validation.`,
+  ja: `${pageCountry.name.ja}の住所形式、${pageCountry.regionLabel.ja}表記、郵便番号ルール、フォーム入力時の注意点を確認できます。`
+}[locale];
+const formatCopy = {
+  zh: {
+    overviewEyebrow: "格式说明",
+    overviewTitle: `${pageCountry.name.zh}地址应该怎么读`,
+    overviewParagraphs: [
+      `${pageCountry.name.zh}地址格式页的任务不是重复工具按钮，而是把地址顺序、${pageCountry.regionLabel.zh}字段和邮编规则讲清楚，让用户知道生成结果为什么这样排布。`,
+      `如果你在做注册页、结账页、数据库样例或地址字段研究，这一页更适合先理解格式，再跳回生成器做实际测试。`
+    ],
+    checklistEyebrow: "填写提示",
+    checklistTitle: "使用这个格式页时重点检查什么",
+    checklist: [
+      `先确认目标表单里的 ${pageCountry.regionLabel.zh} 字段要求全称还是缩写。`,
+      "检查邮编字段是否单独显示，以及是否要求固定字符长度。",
+      "复制完整地址前，先确认街道、城市、地区和邮编的顺序是否符合该国家习惯。"
+    ],
+    faqTitle: `${pageCountry.name.zh}地址格式 FAQ`,
+    relatedTitle: `${pageCountry.name.zh}相关页面`,
+    relatedDescription: "继续进入生成器、相关文章或地址格式目录，形成更清晰的站内浏览路径。",
+    generatorCardTitle: `${pageCountry.name.zh}地址生成器`,
+    generatorCardDescription: "直接回到工具页，按地区筛选并生成可复制的地址结果。",
+    directoryCardTitle: "地址格式目录",
+    directoryCardDescription: "继续对比其他国家的地址顺序、邮编规则和字段写法。"
+  },
+  en: {
+    overviewEyebrow: "Format overview",
+    overviewTitle: `How To Read the ${pageCountry.name.en} Address Format`,
+    overviewParagraphs: [
+      `This page exists to explain address order, ${pageCountry.regionLabel.en.toLowerCase()} fields, and postal-code behavior so the generator output feels understandable instead of random.`,
+      "It is the better place to learn the structure first, then return to the generator when you need copy-ready sample results for testing, demos, or form validation."
+    ],
+    checklistEyebrow: "Form tips",
+    checklistTitle: "What To Check On This Format Page",
+    checklist: [
+      `Confirm whether your target form expects a full ${pageCountry.regionLabel.en.toLowerCase()} name or an abbreviation.`,
+      "Check whether postal code should be entered as its own field and whether length rules apply.",
+      "Make sure the order of street, city, region, and postal code matches the country convention before copying the full address."
+    ],
+    faqTitle: `${pageCountry.name.en} Address Format FAQ`,
+    relatedTitle: `Related ${pageCountry.name.en} Pages`,
+    relatedDescription: "Move from this format guide into the generator, supporting posts, or the broader format directory.",
+    generatorCardTitle: `${pageCountry.name.en} Address Generator`,
+    generatorCardDescription: "Return to the tool page and generate structured, copy-ready address results.",
+    directoryCardTitle: "Address format directory",
+    directoryCardDescription: "Compare address order, postal rules, and field naming across other countries."
+  },
+  ja: {
+    overviewEyebrow: "形式ガイド",
+    overviewTitle: `${pageCountry.name.ja}の住所形式を読むポイント`,
+    overviewParagraphs: [
+      `このページは、住所の並び順、${pageCountry.regionLabel.ja}項目、郵便番号ルールを説明し、ジェネレーター結果の意味を理解しやすくするための形式ガイドです。`,
+      "登録フォーム、チェックアウト、サンプルデータ、住所研究に使う前に、まずここで形式を確認し、その後にジェネレーターへ戻る流れが自然です。"
+    ],
+    checklistEyebrow: "入力時の確認",
+    checklistTitle: "この形式ページで見ておきたい点",
+    checklist: [
+      `${pageCountry.regionLabel.ja}項目が正式名称か略称かを対象フォームで確認する。`,
+      "郵便番号が独立項目なのか、文字数ルールがあるのかを確認する。",
+      "完全住所をコピーする前に、street、city、region、postal code の順序がその国の慣習に合っているかを見る。"
+    ],
+    faqTitle: `${pageCountry.name.ja}の住所形式 FAQ`,
+    relatedTitle: `${pageCountry.name.ja}関連ページ`,
+    relatedDescription: "ジェネレーター、関連記事、住所形式ディレクトリへ自然につながる内部リンクをまとめています。",
+    generatorCardTitle: `${pageCountry.name.ja}住所ジェネレーター`,
+    generatorCardDescription: "ツールページへ戻り、地域で絞り込んだ住所結果を生成できます。",
+    directoryCardTitle: "住所形式ディレクトリ",
+    directoryCardDescription: "他国の住所順序、郵便番号ルール、項目名も比較できます。"
+  }
+}[locale];
+
 const schema = [
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: formatTitle,
-    description: pageCountry.metaDescription[locale],
+    description: formatMetaDescription,
     url: toAbsoluteUrl(canonicalPath, Astro.site)
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: pageCountry.faq.map((item) => ({
+      "@type": "Question",
+      name: item.question[locale],
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer[locale]
+      }
+    }))
   },
   {
     "@context": "https://schema.org",
@@ -60,6 +151,12 @@ const schema = [
       {
         "@type": "ListItem",
         position: 2,
+        name: strings.nav.formats,
+        item: toAbsoluteUrl(getFormatIndexPath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
         name: formatTitle,
         item: toAbsoluteUrl(canonicalPath, Astro.site)
       }
@@ -71,7 +168,7 @@ const schema = [
 <BaseLayout
   locale={locale}
   title={formatTitle}
-  description={pageCountry.metaDescription[locale]}
+  description={formatMetaDescription}
   canonicalPath={canonicalPath}
   alternates={alternateLocaleLinks(alternatePaths)}
   schema={schema}
@@ -87,7 +184,32 @@ const schema = [
       <div class="container">
         <p class="eyebrow">{strings.nav.formats}</p>
         <h1>{formatTitle}</h1>
-        <p class="hero__copy">{pageCountry.toolSummary[locale]}</p>
+        <p class="hero__copy">{formatMetaDescription}</p>
+      </div>
+    </section>
+
+    <section class="section section--compact">
+      <div class="container content-grid">
+        <article class="content-card">
+          <p class="eyebrow">{formatCopy.overviewEyebrow}</p>
+          <h2>{formatCopy.overviewTitle}</h2>
+          {formatCopy.overviewParagraphs.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </article>
+
+        <article class="content-card">
+          <p class="eyebrow">{formatCopy.checklistEyebrow}</p>
+          <h2>{formatCopy.checklistTitle}</h2>
+          <ul class="detail-list">
+            {formatCopy.checklist.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+          <a class="text-link" href={getCountryPath(locale, country.slug)}>
+            {strings.common.readMore}
+          </a>
+        </article>
       </div>
     </section>
 
@@ -135,6 +257,62 @@ const schema = [
             {strings.common.readMore}
           </a>
         </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{strings.sections.faq}</p>
+          <h2>{formatCopy.faqTitle}</h2>
+        </div>
+        <div class="faq-list">
+          {pageCountry.faq.map((item) => (
+            <details class="faq-item">
+              <summary>{item.question[locale]}</summary>
+              <p>{item.answer[locale]}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--compact">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{strings.common.relatedPosts}</p>
+          <h2>{formatCopy.relatedTitle}</h2>
+          <p>{formatCopy.relatedDescription}</p>
+        </div>
+        <div class="card-grid">
+          <article class="link-card">
+            <h3>{formatCopy.generatorCardTitle}</h3>
+            <p>{formatCopy.generatorCardDescription}</p>
+            <a class="text-link" href={getCountryPath(locale, country.slug)}>
+              {strings.common.readMore}
+            </a>
+          </article>
+
+          {relatedPosts.map((post) =>
+            post ? (
+              <article class="link-card">
+                <h3>{post.title[locale]}</h3>
+                <p>{post.description[locale]}</p>
+                <a class="text-link" href={getBlogPath(locale, post.slug)}>
+                  {strings.common.readMore}
+                </a>
+              </article>
+            ) : null
+          )}
+
+          <article class="link-card">
+            <h3>{formatCopy.directoryCardTitle}</h3>
+            <p>{formatCopy.directoryCardDescription}</p>
+            <a class="text-link" href={getFormatIndexPath(locale)}>
+              {strings.common.readMore}
+            </a>
+          </article>
+        </div>
       </div>
     </section>
   </main>

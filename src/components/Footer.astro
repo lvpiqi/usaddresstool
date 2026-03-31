@@ -11,6 +11,7 @@ import {
   localeMeta,
   locales,
   siteConfig,
+  ui,
   type Locale
 } from "../data/site";
 
@@ -19,26 +20,23 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const strings = ui[locale];
 const currentYear = new Date().getFullYear();
-
 const featuredCountrySlugs = ["us", "jp", "ca", "hk", "uk", "in"];
 const featuredCountries = featuredCountrySlugs
   .map((slug) => countries.find((country) => country.slug === slug))
   .filter(Boolean);
 const contactEmail = "km3266899@gmail.com";
 const contactTelegramUrl = "https://t.me/ssq789";
-const contactTelegramHandle = "@ssq789";
 
 const footerText = {
   zh: {
     intro:
-      "真实有效美国地址生成器，秒级生成含ZIP邮编的有效地址。支持软件测试、数据库填充与表单验证场景，免费使用。",
-    compliance: "",
-    dataNote: "",
-    languages: "站点语言",
-    popular: "热门地址页",
-    resources: "资源中心",
-    legal: "法律与政策",
+      "多语言地址工具站，面向测试、表单验证、演示和地址格式研究。",
+    languages: "语言版本",
+    popular: "热门工具",
+    resources: "资源导航",
+    legal: "政策与条款",
     countryDirectory: "国家目录",
     formats: "地址格式",
     blog: "博客",
@@ -51,14 +49,11 @@ const footerText = {
   },
   en: {
     intro:
-      "A multilingual real-format address tool for testing, form validation, demos, and address-format research.",
-    compliance:
-      "This site is for QA, education, demos, and address-format research only, not impersonation, fraud, or platform circumvention.",
-    dataNote: "For production workflows, plug in your own validation, risk, and compliance controls.",
+      "A multilingual address tool site for testing, form validation, demos, and address-format research.",
     languages: "Languages",
-    popular: "Popular generators",
+    popular: "Popular tools",
     resources: "Resources",
-    legal: "Legal",
+    legal: "Policies",
     countryDirectory: "Country directory",
     formats: "Address formats",
     blog: "Blog",
@@ -66,27 +61,24 @@ const footerText = {
     privacy: "Privacy Policy",
     terms: "Terms of Use",
     cookies: "Cookie Policy",
-    taxFree: "US tax-free addresses",
+    taxFree: "US tax-free states",
     rights: "All rights reserved."
   },
   ja: {
     intro:
-      "テスト、フォーム検証、デモ、住所形式の調査向けに作られた多言語の実在形式住所ツールです。",
-    compliance:
-      "本サイトは QA、教育、デモ、住所形式研究のためのものであり、なりすまし、詐欺、規約回避には利用できません。",
-    dataNote: "本番業務では、独自の住所検証、リスク管理、コンプライアンス工程を組み込んでください。",
+      "テスト、フォーム検証、デモ、住所形式確認のための多言語住所ツールサイトです。",
     languages: "言語",
-    popular: "人気の住所ページ",
+    popular: "人気ツール",
     resources: "リソース",
-    legal: "法務とポリシー",
-    countryDirectory: "国別一覧",
+    legal: "ポリシー",
+    countryDirectory: "国別ディレクトリ",
     formats: "住所形式",
     blog: "ブログ",
     about: "このサイトについて",
     privacy: "プライバシーポリシー",
     terms: "利用規約",
     cookies: "Cookie ポリシー",
-    taxFree: "米国免税州住所",
+    taxFree: "US 免税州",
     rights: "All rights reserved."
   }
 }[locale];
@@ -97,68 +89,70 @@ const footerText = {
     <div class="site-footer__grid">
       <section class="site-footer__intro">
         <p class="site-footer__brand">{siteConfig.name}</p>
-        {footerText.intro ? <p>{footerText.intro}</p> : null}
-        {footerText.compliance ? <p>{footerText.compliance}</p> : null}
-        {footerText.dataNote ? <p>{footerText.dataNote}</p> : null}
+        <p>{footerText.intro}</p>
+        <p>{strings.footer.compliance}</p>
+        <p>{strings.footer.attribution}</p>
 
         <section class="site-footer__contact" aria-label="Contact links">
           <div class="site-footer__contact-list">
-              <a
-                aria-label={`Email: ${contactEmail}`}
-                class="footer-contact-link"
-                href={`mailto:${contactEmail}`}
-                title={contactEmail}
-              >
-                <span class="footer-contact-link__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                    <path
-                      d="m5 8 7 5 7-5"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                </span>
-              </a>
-              <a
-                aria-label={`Telegram: ${contactTelegramHandle}`}
-                class="footer-contact-link"
-                href={contactTelegramUrl}
-                rel="me noopener noreferrer"
-                target="_blank"
-                title={contactTelegramHandle}
-              >
-                <span class="footer-contact-link__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      d="M21 4 3.8 10.8c-.8.3-.8 1.4 0 1.7l4.4 1.5 1.6 4.8c.3.8 1.3.9 1.8.2L14 15l4.5 3.5c.7.5 1.7.1 1.9-.8L22 5.5A1.2 1.2 0 0 0 21 4Z"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                    <path
-                      d="M8.2 14 18.5 7.4"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.8"
-                    ></path>
-                  </svg>
-                </span>
-              </a>
+            <a
+              aria-label={`Email: ${contactEmail}`}
+              class="footer-contact-link"
+              href={`mailto:${contactEmail}`}
+              rel="nofollow"
+              title={contactEmail}
+            >
+              <span class="footer-contact-link__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  ></path>
+                  <path
+                    d="m5 8 7 5 7-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  ></path>
+                </svg>
+              </span>
+            </a>
+
+            <a
+              aria-label="Telegram"
+              class="footer-contact-link"
+              href={contactTelegramUrl}
+              rel="me noopener noreferrer"
+              target="_blank"
+              title="Telegram"
+            >
+              <span class="footer-contact-link__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M21 4 3.8 10.8c-.8.3-.8 1.4 0 1.7l4.4 1.5 1.6 4.8c.3.8 1.3.9 1.8.2L14 15l4.5 3.5c.7.5 1.7.1 1.9-.8L22 5.5A1.2 1.2 0 0 0 21 4Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  ></path>
+                  <path
+                    d="M8.2 14 18.5 7.4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  ></path>
+                </svg>
+              </span>
+            </a>
           </div>
         </section>
 
@@ -209,9 +203,7 @@ const footerText = {
     </div>
 
     <div class="site-footer__bottom">
-      <p>
-        © {currentYear} {siteConfig.name}. {footerText.rights}
-      </p>
+      <p>&copy; {currentYear} {siteConfig.name}. {footerText.rights}</p>
     </div>
   </div>
 </footer>

@@ -8,6 +8,7 @@ import {
   getHomePath,
   getInfoPath,
   locales,
+  ui,
   type InfoPageKey,
   type Locale
 } from "../data/site";
@@ -20,6 +21,7 @@ interface Props {
 
 const { locale, pageKey } = Astro.props;
 const page = legalPages[pageKey];
+const strings = ui[locale];
 const canonicalPath = getInfoPath(locale, pageKey);
 const alternatePaths = Object.fromEntries(
   locales.map((lang) => [lang, getInfoPath(lang, pageKey)])
@@ -30,7 +32,7 @@ const updatedLabels = {
   en: "Last updated",
   ja: "最終更新"
 }[locale];
-const noindex = pageKey !== "about";
+
 const schema = [
   {
     "@context": "https://schema.org",
@@ -46,8 +48,7 @@ const schema = [
       {
         "@type": "ListItem",
         position: 1,
-        name:
-          locale === "zh" ? "首页" : locale === "en" ? "Home" : "ホーム",
+        name: strings.common.breadcrumbsHome,
         item: toAbsoluteUrl(getHomePath(locale), Astro.site)
       },
       {
@@ -68,7 +69,7 @@ const schema = [
   canonicalPath={canonicalPath}
   alternates={alternateLocaleLinks(alternatePaths)}
   schema={schema}
-  noindex={noindex}
+  noindex={true}
 >
   <Header locale={locale} alternatePaths={alternatePaths} />
 

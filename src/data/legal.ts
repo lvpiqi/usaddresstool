@@ -24,59 +24,46 @@ const section = (
   paragraphs: { zh, en, ja }
 });
 
+const updatedAt = text("2026年3月31日", "March 31, 2026", "2026年3月31日");
+
 export const legalPages: Record<"about" | "privacy" | "terms" | "cookies", LegalPage> = {
   about: {
     title: text("关于本站", "About", "このサイトについて"),
     description: text(
-      "介绍站点定位、地址生成方式与内容治理原则。",
-      "Learn how the site is positioned, how address results are generated, and how the content is governed.",
-      "サイトの位置付け、住所生成の仕組み、コンテンツ運用方針を説明します。"
+      "介绍本站的定位、地址数据展示方式，以及工具页、格式页和博客页的内容范围。",
+      "Explains the purpose of the site and how tool pages, format guides, and blog pages are structured.",
+      "サイトの目的と、ツールページ、形式ガイド、ブログ記事の役割を説明します。"
     ),
-    updatedAt: text("2026年3月31日", "March 31, 2026", "2026年3月31日"),
+    updatedAt,
     sections: [
       section(
         text("站点定位", "Site purpose", "サイトの目的"),
         [
-          "US Address Tool 是一个面向测试、QA、表单验证、演示和地址格式研究的多语言工具站。",
-          "本站重点是输出结构完整、字段可复制、便于分享的地址示例，而不是创建身份资料或提供身份认证服务。"
+          "US Address Tool 是一个多语言地址工具站，面向测试、QA、表单验证、演示和地址格式研究。",
+          "首页和各国家页的重点是地址生成体验，地址格式页负责解释写法差异，博客页负责补充与工具直接相关的实践内容。"
         ],
         [
-          "US Address Tool is a multilingual tool site for testing, QA, form validation, demos, and address-format research.",
-          "The product focus is structured, copyable, shareable address examples, not identity creation or identity verification."
+          "US Address Tool is a multilingual address tool site for testing, QA, form validation, demos, and address-format research.",
+          "Country generator pages focus on practical output, format guides explain structure differences, and blog posts add closely related educational context."
         ],
         [
-          "US Address Tool は、テスト、QA、フォーム検証、デモ、住所形式の調査向けに作られた多言語ツールサイトです。",
-          "本サイトの目的は、構造化され、コピーや共有がしやすい住所例を提供することであり、本人確認や身元作成サービスではありません。"
+          "US Address Tool は、テスト、QA、フォーム検証、デモ、住所形式の確認向けの多言語ツールサイトです。",
+          "国別ツールページは生成体験を、形式ページは住所構造の違いを、ブログはそれに近い実務知識を補います。"
         ]
       ),
       section(
-        text("生成方式", "How generation works", "生成の仕組み"),
+        text("数据与结果边界", "How results are framed", "結果の位置づけ"),
         [
-          "生成器优先使用自有地址数据层、地区规则、姓名模板和国家格式规则来组合结果，并支持按国家、州、省或地区筛选。",
-          "部分页面可能展示真实街道、城市、邮编格式或公开可查的地理信息，但具体可投递性、商用可用性和身份验证可接受性并不保证。"
+          "本站展示的结果重点在于字段结构、地区筛选和地址格式，而不是提供投递保证、身份认证或合规审查服务。",
+          "如果你要把这些结果接入正式业务，需要自行补充地址校验、风控和业务合规流程。"
         ],
         [
-          "The generator primarily uses a first-party address data layer, regional rules, name templates, and country-specific formatting rules, with filters by country, state, province, or region.",
-          "Some pages may reflect real streets, cities, postal formats, or publicly searchable geographic references, but deliverability, commercial suitability, and identity-verification acceptance are not guaranteed."
+          "The site focuses on address structure, region filtering, and format presentation rather than delivery guarantees, identity verification, or compliance review.",
+          "If you want to use similar data in production, you should add your own validation, risk, and compliance workflow."
         ],
         [
-          "ジェネレーターは、自社の住所データ層、地域ルール、氏名テンプレート、国別の住所形式ルールをもとに結果を構成し、国・州・省・地域で絞り込みできます。",
-          "一部のページでは実在する道路名、都市名、郵便番号形式、公開地理情報を参照する場合がありますが、配達可能性、商用利用適格性、本人確認用途での受理は保証されません。"
-        ]
-      ),
-      section(
-        text("内容治理", "Editorial and compliance principles", "運用とコンプライアンス"),
-        [
-          "我们将国家工具页、地址格式页、博客页和法律页分别维护，减少主题混杂，帮助搜索引擎准确理解页面职责。",
-          "如果未来接入新的分析工具、广告技术、账户系统或外部 API，本页以及相关政策页面会在上线前同步更新。"
-        ],
-        [
-          "Country generator pages, address-format guides, blog posts, and legal pages are maintained as separate content types so search engines can understand their roles clearly.",
-          "If analytics tools, advertising technology, account features, or third-party APIs are introduced later, this page and related policy pages will be updated before those changes go live."
-        ],
-        [
-          "国別ツールページ、住所形式ガイド、ブログ記事、法務ページを分けて管理し、検索エンジンが各ページの役割を理解しやすい構成にしています。",
-          "今後、分析ツール、広告技術、アカウント機能、外部 API を追加する場合は、本ページと関連ポリシーを公開前に更新します。"
+          "このサイトの結果は、配送保証や本人確認よりも、項目構造、地域フィルター、住所形式の確認を目的としています。",
+          "本番利用では、独自の住所検証、リスク管理、コンプライアンス手順を追加してください。"
         ]
       )
     ]
@@ -84,100 +71,55 @@ export const legalPages: Record<"about" | "privacy" | "terms" | "cookies", Legal
   privacy: {
     title: text("隐私政策", "Privacy Policy", "プライバシーポリシー"),
     description: text(
-      "说明站点会处理哪些信息、这些信息如何使用，以及浏览器本地保存和分享链接的工作方式。",
-      "Explains what information the site may handle, how it is used, and how local saves and share links work.",
-      "サイトが扱う可能性のある情報、その利用目的、ローカル保存と共有リンクの仕組みを説明します。"
+      "说明本站可能处理的技术信息、本地保存机制，以及分享链接的工作方式。",
+      "Explains what technical information may be processed, how local saves work, and how share links behave.",
+      "処理される可能性のある技術情報、ローカル保存、共有リンクの仕組みを説明します。"
     ),
-    updatedAt: text("2026年3月31日", "March 31, 2026", "2026年3月31日"),
+    updatedAt,
     sections: [
       section(
-        text("我们可能处理的信息", "Information we may process", "取り扱う可能性のある情報"),
+        text("我们可能处理的信息", "Information we may process", "処理される可能性のある情報"),
         [
-          "当你访问页面、切换语言、选择国家或地区、生成地址或使用分享功能时，站点可能处理相应的页面参数和交互状态。",
-          "出于安全、缓存、性能和故障排查目的，浏览器、Cloudflare 或其他基础设施服务还可能处理 IP 地址、设备类型、访问时间、来源页面和错误日志等技术信息。"
+          "当你访问页面、切换语言、筛选地区、生成结果或使用分享功能时，站点会处理相应的 URL 参数和交互状态。",
+          "为了安全、缓存、性能和故障排查，浏览器、Cloudflare 或相关基础设施可能处理 IP、设备类型、访问时间和错误日志等技术信息。"
         ],
         [
-          "When you browse pages, switch languages, choose a country or region, generate an address, or use sharing features, the site may process the related page parameters and interaction state.",
-          "For security, caching, performance, and troubleshooting, browsers, Cloudflare, or other infrastructure providers may also process technical data such as IP address, device type, access time, referrer, and error logs."
+          "When you browse pages, switch languages, filter regions, generate results, or use sharing, the site may process related URL parameters and interaction state.",
+          "For security, caching, performance, and troubleshooting, browsers, Cloudflare, or supporting infrastructure may also process technical information such as IP address, device type, access time, and error logs."
         ],
         [
-          "ページ閲覧、言語切替、国や地域の選択、住所生成、共有機能の利用時に、関連するページパラメーターや操作状態を処理することがあります。",
-          "また、セキュリティ、キャッシュ、性能監視、障害対応のために、ブラウザー、Cloudflare、その他の基盤サービスが IP アドレス、端末種別、アクセス時刻、参照元、エラーログなどの技術情報を処理する場合があります。"
+          "ページ閲覧、言語切替、地域選択、生成、共有機能の利用時に、関連する URL パラメータや状態が処理されることがあります。",
+          "セキュリティ、キャッシュ、性能、障害対応のために、ブラウザ、Cloudflare、関連基盤が IP、端末種別、アクセス時刻、エラーログなどを処理する場合があります。"
         ]
       ),
       section(
-        text("这些信息的用途", "How the information is used", "利用目的"),
+        text("本地保存与分享链接", "Local saves and share links", "ローカル保存と共有リンク"),
         [
-          "这些信息主要用于渲染页面、生成地址结果、维持站点安全、分析性能、排查故障以及防止滥用。",
-          "浏览公开页面不会自动为你创建账户画像；本站当前版本也不要求注册账号才能使用核心生成功能。"
+          "你手动保存的地址默认写入浏览器本地存储，用来在无账号场景下保留收藏结果。",
+          "分享链接会携带国家、地区、profile 和 seed，以便恢复同一条结果。请不要把敏感个人信息拼接进 URL。"
         ],
         [
-          "This information is mainly used to render pages, generate address results, keep the site secure, analyze performance, diagnose issues, and prevent abuse.",
-          "Browsing public pages does not automatically create an account profile for you, and the current release does not require registration for core generator functions."
+          "Saved addresses are stored in your browser so favorites can persist without accounts.",
+          "Share links carry country, region, profile, and seed so the same result can be restored. Do not append sensitive personal information to those URLs."
         ],
         [
-          "これらの情報は、ページ表示、住所結果の生成、サイト保護、性能分析、障害調査、不正利用防止のために利用されます。",
-          "公開ページを閲覧しただけで自動的にアカウントプロファイルが作成されることはなく、現行版では主要な生成機能に会員登録も必要ありません。"
+          "保存した住所はブラウザ内に保存され、アカウントなしでも再利用できます。",
+          "共有リンクには国、地域、profile、seed が含まれ、同じ結果を復元できます。機微な個人情報を URL に追加しないでください。"
         ]
       ),
       section(
-        text("本地保存与分享链接", "Local saves and shared links", "ローカル保存と共有リンク"),
+        text("第三方服务", "Third-party services", "第三者サービス"),
         [
-          "你保存的地址默认写入自己的浏览器本地存储，用于在无登录状态下保留收藏结果。",
-          "分享链接可能包含当前国家、地区筛选和 seed 参数，以便恢复同一条结果；请不要把敏感个人信息拼接进 URL。"
+          "截至 2026 年 3 月 31 日，核心地址生成流程不依赖第三方广告 Cookie。",
+          "如果未来接入统计、广告、客服组件或其他第三方服务，我们会先更新隐私政策和 Cookie 政策。"
         ],
         [
-          "Saved addresses are stored in your own browser by default so favorites can persist without a login.",
-          "Share links may contain the current country, region filter, and seed so the same result can be restored; do not append sensitive personal information to those URLs."
+          "As of March 31, 2026, the core address generator does not rely on third-party advertising cookies.",
+          "If analytics, advertising, support widgets, or other third-party services are added later, the policy pages will be updated first."
         ],
         [
-          "保存した住所は、ログインなしでも再利用できるよう、通常は利用者自身のブラウザーに保存されます。",
-          "共有リンクには、同じ結果を再現するために現在の国、地域フィルター、seed が含まれる場合があります。機微な個人情報を URL に追加しないでください。"
-        ]
-      ),
-      section(
-        text("第三方服务与托管", "Hosting and third-party services", "ホスティングと第三者サービス"),
-        [
-          "站点当前依赖 Cloudflare 等托管与安全基础设施提供缓存、请求转发和基础防护，这些服务可能在其正常职责范围内处理有限技术数据。",
-          "如果未来新增分析、广告、客服或其他第三方集成功能，我们会先更新本隐私政策和 Cookie 政策，再启用相关服务。"
-        ],
-        [
-          "The site currently relies on hosting and security infrastructure such as Cloudflare for caching, request routing, and baseline protection, and those services may process limited technical data within their normal duties.",
-          "If analytics, advertising, support widgets, or other third-party integrations are added later, we will update this Privacy Policy and the Cookie Policy before enabling them."
-        ],
-        [
-          "本サイトは現在、Cloudflare などのホスティング・セキュリティ基盤を利用しており、キャッシュ、リクエスト中継、基本保護のために、通常業務の範囲で限定的な技術情報が処理される場合があります。",
-          "今後、分析、広告、サポートウィジェット、その他の外部連携を追加する場合は、有効化前に本ポリシーと Cookie ポリシーを更新します。"
-        ]
-      ),
-      section(
-        text("保存期限与安全", "Retention and security", "保存期間と安全管理"),
-        [
-          "保存在浏览器本地的数据由你自己的设备、浏览器设置和清理策略控制。",
-          "服务器侧日志通常只会在安全、性能和故障排查所需的合理期限内保留，我们也会尽量减少不必要的数据暴露。"
-        ],
-        [
-          "Data stored locally in the browser remains under the control of your device, browser settings, and deletion choices.",
-          "Server-side logs are generally kept only for a reasonable period needed for security, performance, and troubleshooting, and unnecessary exposure is minimized where possible."
-        ],
-        [
-          "ブラウザーに保存されたデータは、利用者自身の端末、ブラウザー設定、削除操作によって管理されます。",
-          "サーバー側ログは通常、セキュリティ、性能確認、障害対応に必要な合理的期間のみ保持し、不要なデータ露出は可能な限り減らします。"
-        ]
-      ),
-      section(
-        text("你的选择", "Your choices", "利用者の選択"),
-        [
-          "你可以随时清除浏览器本地存储、删除分享链接参数、关闭 Cookie 或使用无痕模式访问本站。",
-          "本站不以 13 岁以下儿童为目标受众；如未来引入需要更高隐私要求的功能，我们会单独更新相应说明。"
-        ],
-        [
-          "You can clear browser storage, remove share-link parameters, block cookies, or use private browsing mode at any time.",
-          "This website is not directed to children under 13, and if higher-risk features are introduced later, the related privacy disclosures will be updated separately."
-        ],
-        [
-          "ブラウザー保存データの削除、共有リンクのパラメーター削除、Cookie の無効化、プライベートブラウズの利用はいつでも行えます。",
-          "本サイトは 13 歳未満の児童を対象としておらず、将来より厳格なプライバシー配慮が必要な機能を追加する場合は、別途説明を更新します。"
+          "2026 年 3 月 31 日時点で、主要な住所生成フローは第三者広告 Cookie に依存していません。",
+          "将来、分析、広告、サポートウィジェット、その他の外部サービスを追加する場合は、先にポリシーを更新します。"
         ]
       )
     ]
@@ -185,100 +127,70 @@ export const legalPages: Record<"about" | "privacy" | "terms" | "cookies", Legal
   terms: {
     title: text("使用条款", "Terms of Use", "利用規約"),
     description: text(
-      "说明允许的使用方式、数据免责声明、服务可用性与责任限制。",
-      "Explains permitted use, data disclaimers, service availability, and limitations of liability.",
-      "許可される利用方法、データに関する免責、サービス提供条件、責任制限を説明します。"
+      "说明允许的使用方式、禁止行为、数据免责声明和服务调整范围。",
+      "Explains permitted use, prohibited conduct, data disclaimers, and service-change scope.",
+      "許可される利用、禁止行為、データ免責、サービス変更範囲を説明します。"
     ),
-    updatedAt: text("2026年3月31日", "March 31, 2026", "2026年3月31日"),
+    updatedAt,
     sections: [
       section(
-        text("接受条款", "Acceptance of these terms", "本規約への同意"),
+        text("允许用途", "Permitted use", "許可される利用"),
         [
-          "当你访问、浏览或使用 US Address Tool，即表示你同意遵守本使用条款以及站点中公开发布的相关政策页面。",
-          "如果你不同意这些条款，请停止继续使用本站。"
+          "本站面向测试、QA、教学、演示、地址格式研究、多语言表单验证等场景。",
+          "你可以把生成结果用于 UI 演示、流程测试、样例数据和内部说明，但应遵守适用法律与平台规则。"
         ],
         [
-          "By accessing, browsing, or using US Address Tool, you agree to comply with these Terms of Use and the related policy pages published on the site.",
-          "If you do not agree with these terms, you should stop using the website."
+          "The site is intended for testing, QA, education, demos, address-format research, and multilingual form validation.",
+          "You may use generated results for UI demos, workflow testing, sample data, and internal education, subject to applicable law and platform rules."
         ],
         [
-          "US Address Tool にアクセス、閲覧、利用することにより、本利用規約およびサイト上で公開されている関連ポリシーに従うことに同意したものとみなされます。",
-          "これらの条件に同意できない場合は、本サイトの利用を中止してください。"
+          "このサイトは、テスト、QA、教育、デモ、住所形式の確認、多言語フォーム検証向けです。",
+          "生成結果は UI デモ、フローテスト、サンプルデータ、内部説明に利用できますが、法令や各種ルールを守る必要があります。"
         ]
       ),
       section(
-        text("允许的用途", "Permitted use", "許可される利用"),
+        text("禁止行为", "Prohibited conduct", "禁止行為"),
         [
-          "本站面向测试、QA、教学、演示、地址格式研究、国际化验证和表单体验设计等场景。",
-          "你可以在合规前提下使用生成结果做界面演示、流程测试、样例展示和开发调试。"
+          "你不得利用本站内容进行冒充、欺诈、垃圾注册、风控绕过、身份伪造或其他违法违规行为。",
+          "你也不得攻击可用性、滥用自动化访问、超范围抓取数据，或干扰服务的正常运行。"
         ],
         [
-          "The website is intended for testing, QA, education, demos, address-format research, localization checks, and form-experience design.",
-          "You may use generated results for compliant UI demos, workflow testing, sample content, and development debugging."
+          "You may not use site output for impersonation, fraud, spam signups, anti-abuse evasion, identity falsification, or other unlawful conduct.",
+          "You may not attack availability, abuse automated access, scrape beyond reasonable limits, or interfere with normal service operation."
         ],
         [
-          "本サイトは、テスト、QA、教育、デモ、住所形式の調査、国際化確認、フォーム体験設計などを目的としています。",
-          "法令やポリシーを守ることを前提に、生成結果を UI デモ、フローテスト、サンプル表示、開発デバッグに利用できます。"
-        ]
-      ),
-      section(
-        text("禁止行为", "Prohibited conduct", "禁止事項"),
-        [
-          "你不得利用本站结果从事冒充、欺诈、垃圾注册、规避平台规则、绕过风控、伪造身份、违法营销或其他违法违规行为。",
-          "你也不得尝试破坏站点可用性、批量滥用接口、抓取超出合理范围的数据，或以其他方式干扰服务正常运行。"
-        ],
-        [
-          "You may not use site output for impersonation, fraud, spam signups, platform circumvention, anti-abuse evasion, identity falsification, unlawful marketing, or other illegal or abusive conduct.",
-          "You also may not attack availability, abuse automated access, scrape data beyond reasonable limits, or otherwise interfere with normal operation."
-        ],
-        [
-          "本サイトの出力を、なりすまし、詐欺、スパム登録、プラットフォーム回避、不正対策の回避、身元偽装、違法マーケティング、その他の違法・不正行為に利用してはいけません。",
-          "また、可用性への攻撃、自動アクセスの乱用、合理的範囲を超えるスクレイピング、その他サービス運営を妨げる行為も禁止します。"
+          "このサイトの出力を、なりすまし、詐欺、スパム登録、不正回避、身元偽装などの違法行為に使ってはいけません。",
+          "可用性への攻撃、自動アクセスの乱用、過剰なスクレイピング、通常運用の妨害も禁止されます。"
         ]
       ),
       section(
         text("数据免责声明", "Data disclaimer", "データに関する免責"),
         [
-          "生成结果可能来源于自有样本库、公开格式规则、地理参考信息或算法组合。即使页面包含真实街道、城市或邮编元素，也不表示该结果一定可投递、唯一、最新或可用于身份验证。",
-          "你应当自行评估任何输出是否适合业务、财务、税务、法律、KYC、物流或其他高风险场景。"
+          "即使某些页面参考了真实街道、城市或邮编元素，也不表示结果一定可投递、唯一、最新或适合身份认证。",
+          "你应自行判断这些结果是否适合财务、税务、法务、KYC、物流等高风险流程。"
         ],
         [
-          "Generated results may come from curated first-party samples, public formatting rules, geographic references, or algorithmic combinations. Even when a page includes real street, city, or postal elements, that does not mean the result is deliverable, unique, current, or suitable for identity verification.",
-          "You are responsible for deciding whether any output is appropriate for business, financial, tax, legal, KYC, logistics, or other high-risk workflows."
+          "Even if a page reflects real street, city, or postal elements, that does not mean the result is deliverable, unique, current, or suitable for identity verification.",
+          "You are responsible for deciding whether any output is appropriate for financial, tax, legal, KYC, logistics, or other high-risk workflows."
         ],
         [
-          "生成結果は、自社サンプル、公開住所形式ルール、地理参照情報、またはアルゴリズムによる組み合わせに基づく場合があります。実在する道路名、都市名、郵便要素が含まれていても、配達可能性、一意性、最新性、本人確認用途への適合を意味するものではありません。",
-          "事業、金融、税務、法務、KYC、物流など高リスクな用途に適しているかどうかは、利用者自身で判断してください。"
+          "一部のページが実在の通り名、都市名、郵便番号要素を参照していても、配送可能性、唯一性、最新性、本人確認適合性を保証するものではありません。",
+          "財務、税務、法務、KYC、物流などの高リスク用途に適するかどうかは利用者自身が判断してください。"
         ]
       ),
       section(
-        text("知识产权与服务变更", "Intellectual property and service changes", "知的財産とサービス変更"),
+        text("服务调整", "Service changes", "サービス変更"),
         [
-          "站点的页面结构、文案、样式、脚本、数据整理方式和品牌元素，除另有说明外，均由站点运营方或其许可方保留相应权利。",
-          "我们可以在不另行通知的情况下调整页面、内容、地址池、功能、可用国家或服务策略，也可以在必要时暂停或终止部分服务。"
+          "我们可以在不另行通知的情况下调整页面、内容、国家覆盖、地址池或功能。",
+          "如有必要，我们也可能暂停、限制或终止部分服务。"
         ],
         [
-          "Unless stated otherwise, the site layout, copy, styling, scripts, dataset organization, and brand elements remain the property of the operator or its licensors.",
-          "We may update pages, content, address pools, features, available countries, or service rules without notice, and may suspend or discontinue parts of the service when necessary."
+          "We may update pages, content, country coverage, address pools, or features without notice.",
+          "When necessary, parts of the service may also be suspended, limited, or discontinued."
         ],
         [
-          "別途明記がない限り、サイトの構成、文言、スタイル、スクリプト、データ整理方法、ブランド要素に関する権利は運営者またはその許諾元に帰属します。",
-          "ページ、コンテンツ、住所プール、機能、対応国、サービス方針は予告なく変更される場合があり、必要に応じて一部サービスを停止または終了することがあります。"
-        ]
-      ),
-      section(
-        text("责任限制", "Limitation of liability", "責任の制限"),
-        [
-          "在适用法律允许的最大范围内，本站按“现状”提供，不对准确性、持续可用性、适销性或特定用途适用性作明示或默示保证。",
-          "因使用或无法使用本站、依赖生成结果、第三方基础设施故障或政策变更而产生的直接或间接损失，站点运营方在法律允许范围内不承担责任。"
-        ],
-        [
-          "To the maximum extent permitted by law, the website is provided on an \"as is\" basis without express or implied warranties about accuracy, availability, merchantability, or fitness for a particular purpose.",
-          "The operator is not liable, to the extent allowed by law, for direct or indirect losses arising from use of the site, inability to use it, reliance on generated output, third-party infrastructure failures, or policy changes."
-        ],
-        [
-          "法令で認められる最大限の範囲で、本サイトは「現状有姿」で提供され、正確性、継続利用性、商品性、特定目的適合性について明示・黙示を問わず保証しません。",
-          "本サイトの利用または利用不能、生成結果への依存、第三者基盤の障害、ポリシー変更に起因する直接・間接損害について、法令で許される範囲で運営者は責任を負いません。"
+          "ページ、内容、対象国、住所プール、機能は予告なく変更されることがあります。",
+          "必要に応じて、一部サービスを停止、制限、終了する場合があります。"
         ]
       )
     ]
@@ -286,85 +198,55 @@ export const legalPages: Record<"about" | "privacy" | "terms" | "cookies", Legal
   cookies: {
     title: text("Cookie 政策", "Cookie Policy", "Cookie ポリシー"),
     description: text(
-      "说明本站如何使用 Cookie、浏览器本地存储和类似技术来维持功能、安全与性能。",
-      "Explains how the site uses cookies, browser storage, and similar technologies for functionality, security, and performance.",
-      "本サイトが機能維持、セキュリティ、性能のために Cookie やブラウザー保存領域などをどのように利用するかを説明します。"
+      "说明本站如何使用 Cookie、浏览器本地存储和相关技术来维持功能与性能。",
+      "Explains how cookies, browser storage, and similar technologies are used for functionality and performance.",
+      "機能と性能のために Cookie、ブラウザ保存領域、類似技術をどう使うかを説明します。"
     ),
-    updatedAt: text("2026年3月31日", "March 31, 2026", "2026年3月31日"),
+    updatedAt,
     sections: [
       section(
-        text("什么是 Cookie 和类似技术", "What cookies and similar technologies are", "Cookie と類似技術について"),
+        text("什么是 Cookie 和类似技术", "What cookies and similar technologies are", "Cookie と類似技術とは"),
         [
-          "Cookie 是浏览器保存的小型数据文件，常用于记住设置、维持会话、统计访问或提升站点性能。",
-          "除了传统 Cookie，本站也可能使用浏览器本地存储、会话存储或 URL 参数来实现保存结果、恢复分享链接和基础交互。"
+          "Cookie 是浏览器保存的小型数据文件，常用于记住设置、维持会话、统计访问或提升性能。",
+          "除了传统 Cookie，本站也会用本地存储、会话存储和 URL 参数来完成保存、恢复和分享功能。"
         ],
         [
           "Cookies are small browser data files commonly used to remember settings, maintain sessions, measure visits, or improve performance.",
-          "In addition to traditional cookies, the site may use browser local storage, session storage, or URL parameters to save results, restore shared links, and support basic interactions."
+          "In addition to classic cookies, the site also uses local storage, session storage, and URL parameters for save, restore, and share flows."
         ],
         [
-          "Cookie は、設定の記憶、セッション維持、アクセス計測、性能向上などに使われる小さなブラウザーデータです。",
-          "従来の Cookie に加えて、本サイトでは保存結果、共有リンク復元、基本操作のためにローカルストレージ、セッションストレージ、URL パラメーターを利用する場合があります。"
+          "Cookie は設定記憶、セッション維持、訪問計測、性能改善に使われる小さなデータです。",
+          "従来の Cookie に加え、このサイトではローカル保存、セッション保存、URL パラメータも保存・復元・共有のために使います。"
         ]
       ),
       section(
-        text("当前版本使用的功能性存储", "Functional storage used in the current release", "現行版で使われる機能保存"),
+        text("当前版本使用的功能性存储", "Functional storage in the current release", "現在のリリースで使う機能保存"),
         [
-          "当前版本的核心生成流程主要依赖浏览器本地存储来保存你手动收藏的地址结果。",
-          "如果启用分享或恢复功能，页面还会读取当前 URL 中的参数，以便重新展示相同的国家、地区筛选和结果种子。"
+          "当前版本主要使用浏览器本地存储来保存你主动收藏的地址结果。",
+          "当你打开分享链接时，页面也会读取 URL 参数来恢复国家、地区和 seed。"
         ],
         [
-          "The current release mainly uses browser local storage to keep address results that you explicitly choose to save.",
-          "When share or restore features are used, the page may also read URL parameters so the same country, region filter, and result seed can be restored."
+          "The current release mainly uses browser local storage to keep address results that you explicitly save.",
+          "When you open a share link, the page also reads URL parameters to restore country, region, and seed."
         ],
         [
-          "現行版では、利用者が明示的に保存した住所結果を保持するために、主にブラウザーのローカルストレージを使用しています。",
-          "共有または復元機能を使う場合は、同じ国、地域フィルター、結果 seed を再現するために URL パラメーターも参照されます。"
+          "現在のリリースでは、利用者が明示的に保存した住所結果をブラウザのローカル保存に保持します。",
+          "共有リンクを開くと、国、地域、seed を復元するために URL パラメータも読み込みます。"
         ]
       ),
       section(
-        text("必要性 Cookie 与第三方技术", "Necessary cookies and third-party technologies", "必要 Cookie と第三者技術"),
+        text("如何管理 Cookie 和存储", "How to manage cookies and storage", "Cookie と保存の管理方法"),
         [
-          "托管、安全或流量完整性服务可能在必要时设置严格必需的 Cookie 或使用类似技术，以帮助缓存、安全检测和防滥用。",
-          "截至 2026 年 3 月 31 日，核心地址生成流程不依赖第三方广告 Cookie；如果未来接入分析或广告标签，我们会先更新本页和隐私政策。"
+          "你可以通过浏览器设置删除 Cookie、清理本地存储、限制第三方 Cookie 或使用无痕模式访问本站。",
+          "清理这些数据后，已保存地址和部分可恢复状态会失效，但不影响你重新生成新的结果。"
         ],
         [
-          "Hosting, security, or traffic-integrity services may set strictly necessary cookies or use similar technologies when needed for caching, security checks, and abuse prevention.",
-          "As of March 31, 2026, the core generator flow does not rely on third-party advertising cookies. If analytics or ad tags are added later, this page and the Privacy Policy will be updated first."
+          "You can delete cookies, clear local storage, restrict third-party cookies, or use private browsing mode through your browser settings.",
+          "After clearing that data, saved addresses and some restore state may stop working, but you can still generate new results."
         ],
         [
-          "ホスティング、セキュリティ、トラフィック保全サービスは、キャッシュ、安全確認、不正防止のために、必要最小限の Cookie や類似技術を用いる場合があります。",
-          "2026 年 3 月 31 日時点で、主要な住所生成フローは第三者広告 Cookie に依存していません。今後、分析タグや広告タグを追加する場合は、本ページとプライバシーポリシーを先に更新します。"
-        ]
-      ),
-      section(
-        text("如何管理 Cookie 与存储", "How to manage cookies and storage", "Cookie と保存データの管理方法"),
-        [
-          "你可以通过浏览器设置删除 Cookie、清除本地存储、限制第三方 Cookie、关闭脚本或使用无痕模式访问本站。",
-          "清除这些数据后，已保存的地址、部分偏好或可恢复状态可能会失效，这不会影响你再次生成新的示例结果。"
-        ],
-        [
-          "You can delete cookies, clear local storage, restrict third-party cookies, disable scripts, or use private browsing mode through your browser settings.",
-          "After clearing that data, saved addresses, some preferences, or recoverable states may stop working, but you can still generate new example results."
-        ],
-        [
-          "ブラウザー設定から、Cookie 削除、ローカルストレージ消去、第三者 Cookie 制限、スクリプト無効化、プライベートブラウズの利用ができます。",
-          "これらのデータを削除すると、保存済み住所や一部の復元状態が失われる場合がありますが、新しいサンプル結果の生成自体は引き続き利用できます。"
-        ]
-      ),
-      section(
-        text("政策更新", "Policy updates", "ポリシー更新"),
-        [
-          "如果站点的功能、托管方式、分析方案或广告方案发生变化，我们会相应调整本 Cookie 政策。",
-          "继续使用在政策更新后提供的服务，通常意味着你接受更新后的说明。"
-        ],
-        [
-          "If the site’s functionality, hosting model, analytics setup, or advertising stack changes, this Cookie Policy may be updated accordingly.",
-          "Continued use of services after an update generally means you accept the revised explanation."
-        ],
-        [
-          "サイト機能、ホスティング方式、分析構成、広告構成が変更された場合、本 Cookie ポリシーもそれに合わせて更新されることがあります。",
-          "更新後にサービスを継続利用した場合、通常は改訂内容に同意したものとみなされます。"
+          "ブラウザ設定から Cookie の削除、ローカル保存の消去、第三者 Cookie の制限、プライベートブラウズの利用ができます。",
+          "これらのデータを消去すると保存済み住所や復元状態は失われますが、新しい結果の生成は引き続き利用できます。"
         ]
       )
     ]

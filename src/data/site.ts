@@ -19,8 +19,9 @@ export const localeMeta: Record<
 export const siteConfig = {
   name: "US Address Tool",
   shortName: "US Address Tool",
+  domain: "usaddresstool.com",
   description:
-    "US Address Tool is a multilingual real-format address generator for testing, QA, form validation, demos, and address research."
+    "US Address Tool is a multilingual address generator for testing, QA, form validation, demos, and address-format research."
 };
 
 export const ui = {
@@ -46,9 +47,9 @@ export const ui = {
     },
     heroBadges: ["真实格式", "地区筛选", "复制、分享、保存"],
     generator: {
-      title: "真实格式地址生成器",
+      title: "地址生成工具",
       description:
-        "选择国家和地区后，生成包含姓名、电话、街道、城市和邮编字段的真实格式地址，用于 QA、表单测试和演示。",
+        "按国家和地区生成结构化地址结果，适合 QA、表单验证、演示和地址格式研究。",
       regionLabel: "地区筛选",
       regionAll: "随机全部地区",
       generate: "生成地址",
@@ -60,12 +61,12 @@ export const ui = {
       share: "分享",
       shared: "分享链接已复制",
       savedTitle: "已保存的地址",
-      savedAt: "保存于",
+      savedAt: "保存时间",
       resultTitle: "生成结果",
       map: "地图链接",
       statusCopied: "已复制到剪贴板",
       statusSaved: "地址已保存",
-      statusRemoved: "地址已移除",
+      statusRemoved: "地址已删除",
       statusGenerated: "已生成新的地址",
       statusShared: "分享操作已完成",
       statusLoaded: "已恢复分享结果",
@@ -109,22 +110,22 @@ export const ui = {
       },
       save: {
         title: "本地保存",
-        body: "保存结果会写入浏览器本地存储，不需要账号系统。"
+        body: "保存结果写入浏览器本地存储，不需要登录。"
       }
     },
     footer: {
       compliance:
-        "本项目用于测试、QA、演示和地址格式学习，不应用于冒充、欺诈或绕过平台规则。",
+        "本站内容仅用于测试、QA、演示和地址格式研究，不用于冒充、欺诈或绕过平台规则。",
       attribution:
-        "生产环境请维护你自己的地址数据层，不要依赖公开实时 API 作为核心数据源。"
+        "正式业务请接入你自己的地址校验、风控和合规流程。"
     },
     directory: {
       countriesDescription:
-        "按国家查看地址生成器页面，比较不同国家的地区筛选、邮编写法和地址顺序。",
+        "浏览各国家地址生成页面，对比不同国家的地区筛选、邮编写法和地址顺序。",
       blogDescription:
-        "阅读地址格式、邮编规则、字段设计和数据源思路，补充工具页之外的说明内容。",
+        "阅读与地址生成、邮编字段、地址格式和多国家表单相关的实践文章。",
       formatDescription:
-        "查看每个国家常见的地址顺序、邮编格式和填写注意事项。"
+        "查看每个国家常见的地址顺序、邮编格式和填写提示。"
     }
   },
   en: {
@@ -147,11 +148,11 @@ export const ui = {
       updatedAt: "Updated",
       openMap: "Open map"
     },
-    heroBadges: ["Real-world format", "Region filtering", "Copy, share, save"],
+    heroBadges: ["Real-format output", "Region filtering", "Copy, share, save"],
     generator: {
-      title: "Real Address Generator",
+      title: "Address Generator",
       description:
-        "Choose a country and region, then generate a structured address with name, phone, street, city, and postal code fields for QA, demos, and form testing.",
+        "Generate structured address results by country and region for QA, form testing, demos, and address-format research.",
       regionLabel: "Region filter",
       regionAll: "Random all regions",
       generate: "Generate address",
@@ -204,11 +205,11 @@ export const ui = {
     cards: {
       copy: {
         title: "Field-level copy",
-        body: "Name, phone, postal code, and the full address can all be copied individually."
+        body: "Name, phone, postal code, and the full address can be copied separately."
       },
       share: {
         title: "Shareable result",
-        body: "Shared links keep the current country, region, and seed so the same result can be restored."
+        body: "Share links keep the current country, region, and seed so the same result can be restored."
       },
       save: {
         title: "Local save",
@@ -217,15 +218,15 @@ export const ui = {
     },
     footer: {
       compliance:
-        "This project is intended for testing, QA, demos, and address-format education, not impersonation, fraud, or platform circumvention.",
+        "This project is for testing, QA, demos, and address-format education, not impersonation, fraud, or platform circumvention.",
       attribution:
-        "For production use, maintain your own address data layer instead of relying on public real-time APIs."
+        "For production use, maintain your own validation, risk, and compliance layer."
     },
     directory: {
       countriesDescription:
-        "Browse country generator pages and compare region filters, postal-code formats, and address order.",
+        "Browse country generator pages and compare regional filters, postal-code formats, and address order.",
       blogDescription:
-        "Read notes about address formats, postal-code rules, field design, and data-source strategy.",
+        "Read practical articles about address generation, postal fields, formatting rules, and multi-country form flows.",
       formatDescription:
         "Review the common address order, postal-code format, and input tips for each country."
     }
@@ -250,17 +251,17 @@ export const ui = {
       updatedAt: "更新日",
       openMap: "地図を開く"
     },
-    heroBadges: ["実在形式", "地域フィルター", "コピー・共有・保存"],
+    heroBadges: ["実用的な形式", "地域フィルター", "コピー・共有・保存"],
     generator: {
-      title: "実在形式の住所ジェネレーター",
+      title: "住所ジェネレーター",
       description:
-        "国と地域を選ぶと、氏名、電話番号、通り、市区町村、郵便番号を含む住所を生成できます。QA、デモ、フォーム検証に向いています。",
+        "国と地域を選んで、QA、フォーム検証、デモ、住所形式の確認に使える住所結果を生成できます。",
       regionLabel: "地域フィルター",
       regionAll: "すべての地域からランダム",
       generate: "住所を生成",
       load: "結果を読み込む",
       copy: "コピー",
-      copyAll: "住所全体をコピー",
+      copyAll: "完全な住所をコピー",
       save: "保存",
       remove: "削除",
       share: "共有",
@@ -276,7 +277,7 @@ export const ui = {
       statusShared: "共有が完了しました",
       statusLoaded: "共有結果を復元しました",
       statusLoading: "住所を生成しています...",
-      statusFailed: "住所を生成できませんでした。しばらくしてから再度お試しください。",
+      statusFailed: "現在は住所を生成できません。",
       genderLabels: {
         male: "男性",
         female: "女性"
@@ -285,7 +286,7 @@ export const ui = {
         lastName: "姓",
         firstName: "名",
         gender: "性別",
-        phone: "電話番号",
+        phone: "電話",
         email: "メール",
         street: "通り・番地",
         city: "市区町村",
@@ -295,9 +296,9 @@ export const ui = {
       }
     },
     sections: {
-      toolHighlights: "ツールの特長",
-      formatGuide: "住所形式のポイント",
-      regionGuide: "地域情報",
+      toolHighlights: "ツールの特徴",
+      formatGuide: "住所形式メモ",
+      regionGuide: "地域カバレッジ",
       useCases: "向いている使い方",
       faq: "よくある質問",
       sampleAddress: "住所例",
@@ -307,28 +308,28 @@ export const ui = {
     cards: {
       copy: {
         title: "項目ごとにコピー",
-        body: "氏名、電話番号、郵便番号、完全な住所を個別にコピーできます。"
+        body: "氏名、電話、郵便番号、完全な住所を個別にコピーできます。"
       },
       share: {
         title: "共有しやすい結果",
-        body: "共有リンクには国、地域、seed が含まれ、同じ結果を再表示できます。"
+        body: "共有リンクには国、地域、seed が入り、同じ結果を再表示できます。"
       },
       save: {
         title: "ローカル保存",
-        body: "保存した住所はブラウザに残るため、アカウントなしでも使えます。"
+        body: "保存した住所はブラウザに残るので、アカウントなしでも使えます。"
       }
     },
     footer: {
       compliance:
-        "このサイトはテスト、QA、デモ、住所形式の学習向けであり、なりすまし、不正利用、規約回避を目的としていません。",
+        "このサイトはテスト、QA、デモ、住所形式の確認向けであり、なりすまし、不正利用、規約回避を目的とするものではありません。",
       attribution:
-        "本番用途では公開リアルタイム API に依存せず、自前の住所データレイヤーを整備してください。"
+        "本番利用では独自の検証、リスク管理、コンプライアンス手順を追加してください。"
     },
     directory: {
       countriesDescription:
         "国別ページを見比べながら、地域フィルター、郵便番号形式、住所順序の違いを確認できます。",
       blogDescription:
-        "住所形式、郵便番号ルール、入力項目設計、データソース方針を補足する記事をまとめています。",
+        "住所生成、郵便番号項目、住所形式、複数国フォームに関する実践記事をまとめています。",
       formatDescription:
         "各国で一般的な住所順序、郵便番号形式、入力時の注意点を確認できます。"
     }

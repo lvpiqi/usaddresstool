@@ -34,18 +34,19 @@ const alternatePaths = Object.fromEntries(
 const strings = ui[locale];
 const relatedCopy = {
   zh: {
-    title: "相关页面",
-    description: "继续查看和本文主题最相关的工具页、格式页和目录页。"
+    title: "继续阅读",
+    description: "从这篇文章继续进入工具页、格式页或相关主题文章。"
   },
   en: {
-    title: "Related pages",
-    description: "Continue with the tool, format, and directory pages most relevant to this topic."
+    title: "Continue reading",
+    description: "Use these links to move into the related tool pages, format guides, and supporting articles."
   },
   ja: {
-    title: "関連ページ",
-    description: "このテーマと相性の良いツールページ、形式ページ、一覧ページも確認できます。"
+    title: "続きを読む",
+    description: "このテーマに近いツールページ、形式ガイド、関連記事へ進めます。"
   }
 }[locale];
+
 const schema = [
   {
     "@context": "https://schema.org",
