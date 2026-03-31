@@ -4,7 +4,6 @@ import type {
   GeneratorRegionOption
 } from "./address-generator.types";
 import type { Locale } from "../data/site";
-import addressGeneratorScriptUrl from "../scripts/address-generator.js?url";
 
 interface Props {
   locale: Locale;
@@ -429,4 +428,6 @@ const configJson = JSON.stringify({
   <template data-generator-config>{configJson}</template>
 </section>
 
-<script type="module" src={addressGeneratorScriptUrl}></script>
+<script>
+  import "../scripts/address-generator.js";
+</script>
