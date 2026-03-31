@@ -1,5 +1,10 @@
+import { caGeneratedAddresses } from "./ca-generated";
+import { hkGeneratedAddresses } from "./hk-generated";
 import type { AddressRecord, CountryRecord, RegionRecord } from "./countries";
+import { inGeneratedAddresses } from "./in-generated";
 import type { Locale } from "./site";
+import { jpGeneratedAddresses } from "./jp-generated";
+import { ukGeneratedAddresses } from "./uk-generated";
 import { usGeneratedAddresses } from "./us-generated";
 
 export type GeneratorProfile = "default" | "tax-free";
@@ -7,17 +12,21 @@ export type GeneratorProfile = "default" | "tax-free";
 const usTaxFreeRegionCodes = ["AK", "DE", "MT", "NH", "OR"] as const;
 
 const addressOverrides: Record<string, AddressRecord[]> = {
-  us: usGeneratedAddresses as AddressRecord[]
+  hk: hkGeneratedAddresses as AddressRecord[],
+  uk: ukGeneratedAddresses as AddressRecord[],
+  ca: caGeneratedAddresses as AddressRecord[],
+  in: inGeneratedAddresses as AddressRecord[],
+  us: usGeneratedAddresses as AddressRecord[],
+  jp: jpGeneratedAddresses as AddressRecord[]
 };
-const syntheticVariantCountByCountry: Partial<Record<CountryRecord["slug"], number>> = {
-  hk: 24,
-  uk: 28,
-  jp: 28,
-  ca: 28,
-  in: 28
-};
+const syntheticVariantCountByCountry: Partial<Record<CountryRecord["slug"], number>> = {};
 const runtimeVariantSlotsByCountry: Partial<Record<CountryRecord["slug"], number>> = {
-  us: 4
+  us: 4,
+  hk: 5,
+  uk: 5,
+  jp: 5,
+  ca: 5,
+  in: 5
 };
 const expandedAddressCache = new Map<string, AddressRecord[]>();
 
@@ -100,6 +109,10 @@ function buildJapaneseStyleStreet(
   variantIndex: number,
   random: () => number
 ) {
+  if (variantIndex <= 0) {
+    return street;
+  }
+
   const digitMatches = [...street.matchAll(/\d+/g)];
 
   if (!digitMatches.length) {
@@ -133,6 +146,19 @@ function buildVariantStreet(
   }
 }
 
+function buildLocalizedStreet(
+  country: CountryRecord,
+  street: NonNullable<AddressRecord["streetLocalized"]>,
+  variantIndex: number,
+  seedBase: string
+): NonNullable<AddressRecord["streetLocalized"]> {
+  return {
+    zh: buildVariantStreet(country, street.zh, variantIndex, createSeededRandom(`${seedBase}:zh`)),
+    en: buildVariantStreet(country, street.en, variantIndex, createSeededRandom(`${seedBase}:en`)),
+    ja: buildVariantStreet(country, street.ja, variantIndex, createSeededRandom(`${seedBase}:ja`))
+  };
+}
+
 function hasExplicitStreetNumber(country: CountryRecord, street: string) {
   if (country.code === "JP") {
     return /\d/u.test(street);
@@ -162,24 +188,31 @@ function replaceLocalizedStreet(
 function buildVariantEntry(
   entry: AddressRecord,
   variantId: string,
-  street: string
+  street: string,
+  streetLocalized?: AddressRecord["streetLocalized"]
 ) {
   return {
     ...entry,
     id: variantId,
     street,
+    streetLocalized,
     fullAddress: replaceLocalizedStreet(entry.fullAddress, entry.street, street)
   };
 }
 
-function buildMaterializedEntry(entry: AddressRecord, street: string) {
-  if (street === entry.street) {
+function buildMaterializedEntry(
+  entry: AddressRecord,
+  street: string,
+  streetLocalized?: AddressRecord["streetLocalized"]
+) {
+  if (street === entry.street && streetLocalized === entry.streetLocalized) {
     return entry;
   }
 
   return {
     ...entry,
     street,
+    streetLocalized,
     fullAddress: replaceLocalizedStreet(entry.fullAddress, entry.street, street)
   };
 }
@@ -200,16 +233,27 @@ function buildSyntheticAddressVariants(country: CountryRecord, addresses: Addres
     } else {
       const baseRandom = createSeededRandom(`${country.slug}:${entry.id}:variant:0`);
       const street = buildVariantStreet(country, entry.street, 1, baseRandom);
+      const streetLocalized = entry.streetLocalized
+        ? buildLocalizedStreet(country, entry.streetLocalized, 1, `${country.slug}:${entry.id}:variant:0`)
+        : undefined;
 
-      variants.push(buildVariantEntry(entry, `${entry.id}-v0`, street));
+      variants.push(buildVariantEntry(entry, `${entry.id}-v0`, street, streetLocalized));
     }
 
     for (let index = 1; index < variantCount; index += 1) {
       const random = createSeededRandom(`${country.slug}:${entry.id}:variant:${index}`);
       const effectiveIndex = explicitStreetNumber ? index : index + 1;
       const street = buildVariantStreet(country, entry.street, effectiveIndex, random);
+      const streetLocalized = entry.streetLocalized
+        ? buildLocalizedStreet(
+            country,
+            entry.streetLocalized,
+            effectiveIndex,
+            `${country.slug}:${entry.id}:variant:${index}`
+          )
+        : undefined;
 
-      variants.push(buildVariantEntry(entry, `${entry.id}-v${index}`, street));
+      variants.push(buildVariantEntry(entry, `${entry.id}-v${index}`, street, streetLocalized));
     }
 
     return variants;
@@ -294,8 +338,11 @@ export function materializeRuntimeAddress(
   const random = createSeededRandom(`${country.slug}:${entry.id}:${seed}:runtime`);
   const variantIndex = hashSeed(`${country.slug}:${entry.id}:${seed}:slot`) % runtimeSlotCount;
   const street = buildVariantStreet(country, entry.street, variantIndex, random);
+  const streetLocalized = entry.streetLocalized
+    ? buildLocalizedStreet(country, entry.streetLocalized, variantIndex, `${country.slug}:${entry.id}:${seed}:runtime`)
+    : undefined;
 
-  return buildMaterializedEntry(entry, street);
+  return buildMaterializedEntry(entry, street, streetLocalized);
 }
 
 export function getRuntimeRegionName(

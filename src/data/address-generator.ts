@@ -86,35 +86,33 @@ const nameBankByCountryCode: Record<string, NameBank> = {
   IN: indianNameBank
 };
 const ukRegionAreaCodes: Record<string, string[]> = {
-  ENG: ["20", "121", "161", "191"],
-  SCT: ["131", "141", "1224"],
-  WLS: ["29", "1792", "1970"],
+  ENG: ["20", "121", "161", "191", "113", "151", "117", "1223"],
+  SCT: ["131", "141", "1224", "1382", "1463", "1786"],
+  WLS: ["29", "1792", "1970", "1633", "1978", "1267"],
   NIR: ["28"]
 };
 const japanRegionAreaCodes: Record<string, string[]> = {
-  TOKYO: ["3"],
-  OSAKA: ["6"],
-  KYOTO: ["75"],
-  HOKKAIDO: ["11"]
+  TOKYO: ["3", "42"],
+  KANAGAWA: ["45", "44", "46"],
+  AICHI: ["52", "56"],
+  OSAKA: ["6", "72"],
+  KYOTO: ["75", "774"],
+  HYOGO: ["78", "79"],
+  HOKKAIDO: ["11", "138", "157"],
+  FUKUOKA: ["92", "93", "942"]
 };
 const canadaRegionAreaCodes: Record<string, string[]> = {
   ON: ["226", "249", "289", "343", "365", "416", "437", "519", "613", "647", "705", "807", "905"],
   BC: ["236", "250", "604", "672", "778"],
-  QC: ["367", "418", "438", "450", "514", "579", "581", "873"],
+  QC: ["367", "418", "438", "450", "514", "579", "581", "819", "873"],
   AB: ["368", "403", "587", "780", "825"]
 };
 const indiaRegionAreaCodes: Record<string, string[]> = {
-  MH: ["22"],
+  MH: ["22", "20", "712", "253", "251"],
   DL: ["11"],
-  KA: ["80"],
-  WB: ["33"],
-  TS: ["40"]
-};
-const japaneseNativePrefectureByRegionCode: Record<string, string> = {
-  TOKYO: "東京都",
-  OSAKA: "大阪府",
-  KYOTO: "京都府",
-  HOKKAIDO: "北海道"
+  KA: ["80", "821", "836", "831", "820"],
+  WB: ["33", "353", "341", "342", "321"],
+  TS: ["40", "870", "878", "8462", "8742"]
 };
 
 export function isLocale(value: string | null | undefined): value is Locale {
@@ -307,6 +305,41 @@ function getNameBank(countryCode: string) {
   return nameBankByCountryCode[countryCode] ?? westernNameBank;
 }
 
+function getLocalizedField(
+  value: string,
+  localized:
+    | AddressRecord["streetLocalized"]
+    | AddressRecord["cityLocalized"]
+    | AddressRecord["districtLocalized"],
+  locale: Locale,
+  allowEmpty = false
+) {
+  const localizedValue = localized?.[locale];
+
+  if (localizedValue === undefined) {
+    return value;
+  }
+
+  if (allowEmpty) {
+    return localizedValue;
+  }
+
+  return localizedValue.trim() ? localizedValue : value;
+}
+
+function getLocalizedOptionalField(
+  value: string | undefined,
+  localized: AddressRecord["districtLocalized"],
+  locale: Locale,
+  allowEmpty = false
+) {
+  if (value === undefined && !localized) {
+    return undefined;
+  }
+
+  return getLocalizedField(value ?? "", localized, locale, allowEmpty);
+}
+
 function buildFullAddress(
   country: CountryRecord,
   entry: AddressRecord,
@@ -314,30 +347,37 @@ function buildFullAddress(
   locale: Locale
 ) {
   const countryName = country.name[locale];
+  const street = getLocalizedField(entry.street, entry.streetLocalized, locale);
+  const city =
+    country.code === "JP"
+      ? getLocalizedField(entry.city, entry.cityLocalized, locale, true)
+      : getLocalizedField(entry.city, entry.cityLocalized, locale);
+  const district =
+    country.code === "JP"
+      ? getLocalizedOptionalField(entry.district, entry.districtLocalized, locale, true)
+      : getLocalizedOptionalField(entry.district, entry.districtLocalized, locale);
 
   switch (country.code) {
     case "HK":
-      return [entry.street, entry.district, entry.city].filter(Boolean).join(", ");
+      return [street, district, city].filter(Boolean).join(", ");
+    case "IN":
+      return [street, district, city, `${regionName} ${entry.postalCode}`, countryName]
+        .filter(Boolean)
+        .join(", ");
     case "JP":
       if (locale === "en") {
-        return [
-          entry.street,
-          entry.district,
-          entry.city === japaneseNativePrefectureByRegionCode[entry.regionCode] ? "" : entry.city,
-          `${regionName} ${entry.postalCode}`,
-          countryName
-        ]
+        return [street, district, entry.city, `${regionName} ${entry.postalCode}`, countryName]
           .filter(Boolean)
           .join(", ");
       }
 
-      return `〒${entry.postalCode} ${regionName}${entry.city === japaneseNativePrefectureByRegionCode[entry.regionCode] ? "" : entry.city}${entry.district ?? ""}${entry.street}, ${countryName}`;
+      return `〒${entry.postalCode} ${regionName}${city}${district ?? ""}${street}, ${countryName}`;
     case "UK":
-      return [entry.street, entry.city, regionName, entry.postalCode, countryName]
+      return [street, city, regionName, entry.postalCode, countryName]
         .filter(Boolean)
         .join(", ");
     default:
-      return `${entry.street}, ${entry.city}, ${regionName} ${entry.postalCode}, ${countryName}`;
+      return `${street}, ${city}, ${regionName} ${entry.postalCode}, ${countryName}`;
   }
 }
 
@@ -414,6 +454,9 @@ export function generateAddress({
     entry.regionCode,
     `${entry.id}:${resolvedSeed}`
   );
+  const street = getLocalizedField(entry.street, entry.streetLocalized, locale);
+  const city = getLocalizedField(entry.city, entry.cityLocalized, locale);
+  const district = getLocalizedOptionalField(entry.district, entry.districtLocalized, locale);
 
   return {
     seed: resolvedSeed,
@@ -428,9 +471,9 @@ export function generateAddress({
     gender,
     phone,
     email: buildEmail(firstName, lastName, country.slug, resolvedSeed),
-    street: entry.street,
-    city: entry.city,
-    district: entry.district,
+    street,
+    city,
+    district,
     stateFullName: regionName,
     postalCode: entry.postalCode,
     fullAddress: buildFullAddress(country, entry, regionName, locale),

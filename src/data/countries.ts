@@ -1,4 +1,9 @@
+import { caGeneratedAddresses, caGeneratedRegions } from "./ca-generated";
+import { hkGeneratedAddresses, hkGeneratedRegions } from "./hk-generated";
 import type { Locale, LocalizedList, LocalizedText } from "./site";
+import { inGeneratedAddresses, inGeneratedRegions } from "./in-generated";
+import { jpGeneratedAddresses, jpGeneratedRegions } from "./jp-generated";
+import { ukGeneratedAddresses, ukGeneratedRegions } from "./uk-generated";
 import { usGeneratedRegions } from "./us-generated";
 
 export interface RegionRecord {
@@ -12,8 +17,11 @@ export interface AddressRecord {
   venue: LocalizedText;
   recipient: LocalizedText;
   street: string;
+  streetLocalized?: LocalizedText;
   district?: string;
+  districtLocalized?: LocalizedText;
   city: string;
+  cityLocalized?: LocalizedText;
   postalCode: string;
   phone: string;
   email: string;
@@ -325,9 +333,9 @@ const countries: CountryRecord[] = [
       "香港住所はビル名、通り、区域の比重が高く、専用ページで説明する価値があります。"
     ),
     toolSummary: text(
-      "香港页适合承接与楼宇地址、街道写法、区域筛选相关的搜索意图。",
-      "The Hong Kong page supports queries around building-based addresses, street order, and regional filters.",
-      "香港ページはビル住所、通り表記、地域フィルターに関する検索意図を受けやすい構成です。"
+      "香港页适合承接与楼宇地址、街道写法、区域筛选和分区差异相关的搜索意图。",
+      "The Hong Kong page supports queries around building-based addresses, street order, regional filters, and area-level variation.",
+      "香港ページはビル住所、通り表記、地域フィルター、地域差に関する検索意図を受けやすい構成です。"
     ),
     regionLabel: text("区域", "Region", "地域"),
     formatRules: list(
@@ -349,17 +357,17 @@ const countries: CountryRecord[] = [
     ),
     regionNotes: list(
       [
-        "页面按港岛、九龙、新界做筛选，更符合用户直觉。",
+        "页面按港岛、九龙、新界做筛选后，会在多个商圈和街道种子之间切换。",
         "楼宇型地址结果更适合字段复制，而不是只显示一整段文本。",
         "如果地址池扩展，建议继续按区域维护来源。"
       ],
       [
-        "The page filters by Hong Kong Island, Kowloon, and the New Territories, which matches how users usually browse Hong Kong addresses.",
+        "After filtering by Hong Kong Island, Kowloon, or the New Territories, the generator rotates across multiple districts and street seeds.",
         "Building-heavy results are easier to use when field-level copy is available.",
         "As the dataset grows, keep entries grouped by region for easier maintenance."
       ],
       [
-        "香港島、九龍、新界で絞り込める構造は、香港住所の探し方に自然です。",
+        "香港島、九龍、新界で絞り込んだ後も、複数の地区と通り種子を切り替えて生成できます。",
         "ビル名を含む結果は、全文より項目単位でコピーできる方が使いやすくなります。",
         "データが増える場合も、地域ごとの管理を続けると運用しやすくなります。"
       ]
@@ -377,58 +385,11 @@ const countries: CountryRecord[] = [
     faq: buildFaq(text("香港", "Hong Kong", "香港"), text("区域", "region", "地域")),
     stats: [
       stats("覆盖区域", "Regions covered", "対象地域", "3", "覆盖港岛、九龙、新界。", "Covers Hong Kong Island, Kowloon, and the New Territories.", "香港島、九龍、新界をカバーします。"),
-      stats("结构重点", "Format focus", "形式の焦点", "Building", "楼宇名称与区域层级是主要差异点。", "Building and district structure is the main differentiator.", "ビル名と地域構造が主な違いです。"),
-      stats("表单适配", "Form fit", "フォーム適合", "Bilingual", "适合中英双语地址表单测试。", "Useful for bilingual address-form testing.", "中英併記フォームの確認に向いています。")
+      stats("单区域深度", "Depth per region", "地域ごとの深さ", "150+", "每个区域由多个商圈和街道种子扩展到 150+ 结果。", "Each region expands to 150+ results from multiple district and street seeds.", "各地域は複数の地区と通り種子から 150 件以上の結果に広がります。"),
+      stats("结构重点", "Format focus", "形式の焦点", "Building", "楼宇名称与区域层级是主要差异点。", "Building and district structure is the main differentiator.", "ビル名と地域構造が主な違いです。")
     ],
-    regions: [
-      { code: "HKI", name: text("港岛", "Hong Kong Island", "香港島") },
-      { code: "KOW", name: text("九龙", "Kowloon", "九龍") },
-      { code: "NT", name: text("新界", "New Territories", "新界") }
-    ],
-    addresses: [
-      address(
-        "hk-cw-ifc",
-        "HKI",
-        text("International Finance Centre", "International Finance Centre", "International Finance Centre"),
-        "8 Finance St",
-        "Hong Kong",
-        "000000",
-        22.2855,
-        114.1581,
-        {
-          district: "Central",
-          phone: "+852 2000 0000"
-        }
-      ),
-      address(
-        "hk-tsim-clock",
-        "KOW",
-        text("Clock Tower", "Clock Tower", "Clock Tower"),
-        "10 Salisbury Rd",
-        "Hong Kong",
-        "000000",
-        22.2939,
-        114.1694,
-        {
-          district: "Tsim Sha Tsui",
-          phone: "+852 2000 1000"
-        }
-      ),
-      address(
-        "hk-tungchung-citygate",
-        "NT",
-        text("Citygate Outlets", "Citygate Outlets", "Citygate Outlets"),
-        "20 Tat Tung Rd",
-        "Hong Kong",
-        "000000",
-        22.2901,
-        113.9429,
-        {
-          district: "Tung Chung",
-          phone: "+852 2000 2000"
-        }
-      )
-    ],
+    regions: hkGeneratedRegions,
+    addresses: hkGeneratedAddresses,
     relatedPosts: ["zip-vs-postal-code", "why-real-address-data"]
   },
   {
@@ -452,9 +413,9 @@ const countries: CountryRecord[] = [
       "英国住所では、US の州 + ZIP よりも postcode が中心的な識別要素になります。"
     ),
     toolSummary: text(
-      "英国页适合承接 postcode、post town、国家地区差异等搜索意图。",
-      "The UK page is a good match for postcode, post-town, and regional format queries.",
-      "英国ページは postcode、post town、地域差に関する検索意図を受けやすい構成です。"
+      "英国页适合承接 postcode、post town、地区差异和街道写法相关搜索意图。",
+      "The UK page is a good match for postcode, post-town, regional variation, and street-format queries.",
+      "英国ページは postcode、post town、地域差、通り表記に関する検索意図を受けやすい構成です。"
     ),
     regionLabel: text("地区", "Region", "地域"),
     formatRules: list(
@@ -476,17 +437,17 @@ const countries: CountryRecord[] = [
     ),
     regionNotes: list(
       [
-        "页面按英国四大区域分组，方便做地区对比。",
+        "页面按英国四大区域分组后，会在多个城市和街道种子之间切换。",
         "postcode 字段应与 street、town 一起展示，便于用户理解结果。",
         "如果后续扩展城市池，建议继续按区域维护。"
       ],
       [
-        "The page groups results across the four UK regions for easier comparison.",
+        "After choosing a UK region, the generator rotates across multiple cities and street seeds instead of staying near one landmark.",
         "Postcode should be shown together with street and town to keep the output understandable.",
         "If the city pool grows, keeping it grouped by region will help maintenance."
       ],
       [
-        "英国 4 地域で分けることで、地域差を比較しやすくなります。",
+        "英国 4 地域で分けた後も、複数の都市と通り種子を切り替えて生成できます。",
         "postcode は street や town と一緒に見せた方が結果を理解しやすくなります。",
         "都市データを増やす場合も、地域単位で管理すると保守しやすくなります。"
       ]
@@ -504,61 +465,11 @@ const countries: CountryRecord[] = [
     faq: buildFaq(text("英国", "UK", "英国"), text("地区", "region", "地域")),
     stats: [
       stats("覆盖区域", "Regions covered", "対象地域", "4", "覆盖 England、Scotland、Wales、Northern Ireland。", "Covers England, Scotland, Wales, and Northern Ireland.", "England、Scotland、Wales、Northern Ireland をカバーします。"),
-      stats("关键词角度", "Keyword angle", "キーワード軸", "Postcode", "更适合 postcode 与 UK address 相关搜索。", "Well aligned with postcode and UK address queries.", "postcode と UK address 系の検索意図に合います。"),
-      stats("输出重点", "Output focus", "出力の焦点", "Town + code", "强调 post town 与 postcode 的组合。", "Emphasizes post-town and postcode pairings.", "post town と postcode の組み合わせを重視しています。")
+      stats("单区域深度", "Depth per region", "地域ごとの深さ", "150+", "每个区域由多个城市和街道种子扩展到 150+ 结果。", "Each region expands to 150+ results from multiple city and street seeds.", "各地域は複数の都市と通り種子から 150 件以上の結果に広がります。"),
+      stats("关键词角度", "Keyword angle", "キーワード軸", "Postcode", "更适合 postcode 与 UK address 相关搜索。", "Well aligned with postcode and UK address queries.", "postcode と UK address 系の検索意図に合います。")
     ],
-    regions: [
-      { code: "ENG", name: text("英格兰", "England", "England") },
-      { code: "SCT", name: text("苏格兰", "Scotland", "Scotland") },
-      { code: "WLS", name: text("威尔士", "Wales", "Wales") },
-      { code: "NIR", name: text("北爱尔兰", "Northern Ireland", "Northern Ireland") }
-    ],
-    addresses: [
-      address(
-        "uk-eng-city-hall",
-        "ENG",
-        text("City Hall", "City Hall", "City Hall"),
-        "The Queen's Walk",
-        "London",
-        "SE1 2AA",
-        51.5045,
-        -0.0772,
-        { phone: "+44 20 7000 0000" }
-      ),
-      address(
-        "uk-sct-parliament",
-        "SCT",
-        text("Scottish Parliament", "Scottish Parliament", "Scottish Parliament"),
-        "Horse Wynd",
-        "Edinburgh",
-        "EH99 1SP",
-        55.9522,
-        -3.1741,
-        { phone: "+44 131 300 0000" }
-      ),
-      address(
-        "uk-wls-city-hall",
-        "WLS",
-        text("Cardiff City Hall", "Cardiff City Hall", "Cardiff City Hall"),
-        "Gorsedd Gardens",
-        "Cardiff",
-        "CF10 3ND",
-        51.4839,
-        -3.1777,
-        { phone: "+44 29 2000 0000" }
-      ),
-      address(
-        "uk-nir-belfast",
-        "NIR",
-        text("Belfast City Hall", "Belfast City Hall", "Belfast City Hall"),
-        "Donegall Square N",
-        "Belfast",
-        "BT1 5GS",
-        54.597,
-        -5.93,
-        { phone: "+44 28 9000 0000" }
-      )
-    ],
+    regions: ukGeneratedRegions,
+    addresses: ukGeneratedAddresses,
     relatedPosts: ["uk-address-format-guide", "zip-vs-postal-code"]
   },
   {
@@ -582,9 +493,9 @@ const countries: CountryRecord[] = [
       "日本住所は欧米の住所順序と差が大きいため、独立した説明ページが必要です。"
     ),
     toolSummary: text(
-      "日本页适合承接都道府县、邮编和日文地址顺序相关搜索。",
-      "The Japan page is a good match for prefecture, postal-code, and Japanese-order address queries.",
-      "都道府県、郵便番号、日本語順序の住所検索意図に向いています。"
+      "日本页适合承接都道府县、邮编、城市/区筛选和日文地址顺序相关搜索。",
+      "The Japan page is a good match for prefecture, postal-code, city-or-ward filtering, and Japanese-order address queries.",
+      "都道府県、郵便番号、市区フィルター、日本語順序の住所検索意図に向いています。"
     ),
     regionLabel: text("都道府县", "Prefecture", "都道府県"),
     formatRules: list(
@@ -606,17 +517,17 @@ const countries: CountryRecord[] = [
     ),
     regionNotes: list(
       [
-        "页面按都道府县筛选，更符合日本地址理解方式。",
+        "页面按都道府县筛选后，会在多个城市 / 区和街道种子之间切换，不再只依赖单点漂移。",
         "相同地址在英文和日文界面里的展示顺序可能不同。",
         "如果后续加入更多城市，应继续保留都道府县层级。"
       ],
       [
-        "The page filters by prefecture, which matches how Japanese addresses are usually understood.",
+        "After prefecture filtering, the generator rotates across multiple cities, wards, and street seeds instead of relying on a single drifted point.",
         "The same address may appear in a different order between Japanese and English interfaces.",
         "If more cities are added later, keep the prefecture layer in place."
       ],
       [
-        "都道府県で絞り込む構造は、日本住所の理解と相性が良いです。",
+        "都道府県で絞り込んだ後も、複数の市区と通り種子を切り替えて生成でき、単一点のずらしに依存しません。",
         "同じ住所でも、日本語 UI と英語 UI で表示順が変わることがあります。",
         "都市を増やす場合も、都道府県レイヤーを維持すると分かりやすくなります。"
       ]
@@ -633,70 +544,12 @@ const countries: CountryRecord[] = [
     ),
     faq: buildFaq(text("日本", "Japan", "日本"), text("都道府県", "prefecture", "都道府県")),
     stats: [
-      stats("覆盖地区", "Regions covered", "対象地域", "4", "覆盖 4 个常用都道府县示例。", "Covers four common prefecture examples.", "4 つの代表的な都道府県をカバーします。"),
-      stats("顺序差异", "Order angle", "順序の違い", "JP / EN", "同一地址可在不同语言里用不同顺序展示。", "The same address can be shown in different orders by language.", "同じ住所でも言語によって表示順が変わります。"),
-      stats("字段重点", "Field focus", "項目の焦点", "Postal code", "邮编与都道府县是核心识别字段。", "Postal code and prefecture are core fields.", "郵便番号と都道府県が主要な識別項目です。")
+      stats("覆盖地区", "Regions covered", "対象地域", "8", "覆盖 8 个高需求都道府县示例。", "Covers eight high-demand prefectures.", "需要の高い 8 つの都道府県をカバーします。"),
+      stats("单地区深度", "Depth per prefecture", "都道府県ごとの深さ", "150+", "每个都道府县由多个城市 / 区和街道种子扩展到 150+ 结果。", "Each prefecture expands to 150+ results from multiple city and street seeds.", "各都道府県は複数の市区と通り種子から 150 件以上の結果に広がります。"),
+      stats("顺序差异", "Order angle", "順序の違い", "JP / EN", "同一地址可在不同语言里用不同顺序展示。", "The same address can be shown in different orders by language.", "同じ住所でも言語によって表示順が変わります。")
     ],
-    regions: [
-      { code: "TOKYO", name: text("东京都", "Tokyo", "東京都") },
-      { code: "OSAKA", name: text("大阪府", "Osaka", "大阪府") },
-      { code: "KYOTO", name: text("京都府", "Kyoto", "京都府") },
-      { code: "HOKKAIDO", name: text("北海道", "Hokkaido", "北海道") }
-    ],
-    addresses: [
-      address(
-        "jp-tokyo-skytree",
-        "TOKYO",
-        text("东京晴空塔", "Tokyo Skytree", "東京スカイツリー"),
-        "1-1-2 Oshiage",
-        "Tokyo",
-        "131-0045",
-        35.7101,
-        139.8107,
-        {
-          district: "Sumida"
-        }
-      ),
-      address(
-        "jp-osaka-castle",
-        "OSAKA",
-        text("大阪城", "Osaka Castle", "大阪城"),
-        "1-1 Osakajo",
-        "Osaka",
-        "540-0002",
-        34.6873,
-        135.5259,
-        {
-          district: "Chuo Ward"
-        }
-      ),
-      address(
-        "jp-kyoto-station",
-        "KYOTO",
-        text("京都站", "Kyoto Station", "京都駅"),
-        "901 Higashishiokoji Kamadonocho",
-        "Kyoto",
-        "600-8216",
-        34.9855,
-        135.7585,
-        {
-          district: "Shimogyo Ward"
-        }
-      ),
-      address(
-        "jp-sapporo-tv-tower",
-        "HOKKAIDO",
-        text("札幌电视塔", "Sapporo TV Tower", "さっぽろテレビ塔"),
-        "1 Odorinishi",
-        "Sapporo",
-        "060-0042",
-        43.0611,
-        141.3564,
-        {
-          district: "Chuo Ward"
-        }
-      )
-    ],
+    regions: jpGeneratedRegions,
+    addresses: jpGeneratedAddresses,
     relatedPosts: ["japan-address-format", "zip-vs-postal-code"]
   },
   {
@@ -744,17 +597,17 @@ const countries: CountryRecord[] = [
     ),
     regionNotes: list(
       [
-        "省份筛选可以直连加拿大地址的主要填写习惯。",
+        "省份筛选后，会在多个城市和街道种子之间切换，更接近真实地址池分布。",
         "postal code 与 province 一起展示会更易读。",
         "如果后续增加更多城市，建议仍按省维护地址池。"
       ],
       [
-        "Province filtering maps well to how Canadian forms are usually filled.",
+        "After filtering by province, the generator rotates across multiple cities and street seeds instead of relying on one anchor point.",
         "Postal code is easiest to read when shown next to the province context.",
         "If more cities are added, keep the pool organized by province."
       ],
       [
-        "province フィルターは、カナダのフォーム入力習慣と相性が良いです。",
+        "province で絞り込んだ後も、複数の都市と通り種子を切り替えて生成できます。",
         "postal code は province と一緒に見せると理解しやすくなります。",
         "都市を増やす場合も、province 単位で管理すると保守しやすくなります。"
       ]
@@ -771,62 +624,12 @@ const countries: CountryRecord[] = [
     ),
     faq: buildFaq(text("加拿大", "Canada", "カナダ"), text("省份", "province", "州")),
     stats: [
-      stats("覆盖省份", "Regions covered", "対象州", "4", "覆盖 4 个常用省份示例。", "Covers four common province examples.", "代表的な 4 州をカバーします。"),
-      stats("字段重点", "Field focus", "項目の焦点", "Province", "province 与 postal code 是页面核心。", "Province plus postal code is the core pairing here.", "province と postal code の組み合わせが中心です。"),
-      stats("搜索方向", "Search angle", "検索軸", "CA / code", "适合加拿大地址与 postal code 相关搜索。", "Good for Canada address and postal-code intent.", "Canada address と postal code 系の検索意図に向いています。")
+      stats("覆盖省份", "Regions covered", "対象州", "4", "覆盖 4 个核心省份示例。", "Covers four core provinces.", "主要な 4 州をカバーします。"),
+      stats("单省深度", "Depth per province", "州ごとの深さ", "150+", "每个省份由多个城市和街道种子扩展到 150+ 结果。", "Each province expands to 150+ results from multiple city and street seeds.", "各州は複数の都市と通り種子から 150 件以上の結果に広がります。"),
+      stats("字段重点", "Field focus", "項目の焦点", "Province", "province 与 postal code 是页面核心。", "Province plus postal code is the core pairing here.", "province と postal code の組み合わせが中心です。")
     ],
-    regions: [
-      { code: "ON", name: text("安大略省", "Ontario", "Ontario") },
-      { code: "BC", name: text("不列颠哥伦比亚省", "British Columbia", "British Columbia") },
-      { code: "QC", name: text("魁北克省", "Quebec", "Quebec") },
-      { code: "AB", name: text("阿尔伯塔省", "Alberta", "Alberta") }
-    ],
-    addresses: [
-      address(
-        "ca-on-city-hall",
-        "ON",
-        text("多伦多市政厅", "Toronto City Hall", "Toronto City Hall"),
-        "100 Queen St W",
-        "Toronto",
-        "M5H 2N2",
-        43.6535,
-        -79.3841,
-        { phone: "+1 416-200-0000" }
-      ),
-      address(
-        "ca-bc-convention",
-        "BC",
-        text("温哥华会议中心", "Vancouver Convention Centre", "Vancouver Convention Centre"),
-        "1055 Canada Pl",
-        "Vancouver",
-        "V6C 0C3",
-        49.2887,
-        -123.1112,
-        { phone: "+1 604-200-0000" }
-      ),
-      address(
-        "ca-qc-city-hall",
-        "QC",
-        text("蒙特利尔市政厅", "Montreal City Hall", "Montreal City Hall"),
-        "275 Notre-Dame St E",
-        "Montreal",
-        "H2Y 1C6",
-        45.5086,
-        -73.5548,
-        { phone: "+1 514-200-0000" }
-      ),
-      address(
-        "ca-ab-library",
-        "AB",
-        text("卡尔加里中央图书馆", "Calgary Central Library", "Calgary Central Library"),
-        "800 3 St SE",
-        "Calgary",
-        "T2G 2E7",
-        51.0459,
-        -114.0571,
-        { phone: "+1 403-200-0000" }
-      )
-    ],
+    regions: caGeneratedRegions,
+    addresses: caGeneratedAddresses,
     relatedPosts: ["canada-address-format-guide", "zip-vs-postal-code"]
   },
   {
@@ -850,9 +653,9 @@ const countries: CountryRecord[] = [
       "インド住所では state、district、locality、PIN Code が一緒に意味を持つため、専用ページが役立ちます。"
     ),
     toolSummary: text(
-      "印度页适合承接 PIN Code、district、locality 和地址字段结构相关搜索。",
-      "The India page is a good fit for PIN code, district, locality, and structure-focused queries.",
-      "PIN Code、district、locality、住所構造に関する検索意図に合うページです。"
+      "印度页适合承接 PIN Code、district、locality、州筛选和地址结构相关搜索。",
+      "The India page is a good fit for PIN code, district, locality, state filtering, and structure-focused queries.",
+      "PIN Code、district、locality、州フィルター、住所構造に関する検索意図に合うページです。"
     ),
     regionLabel: text("州", "State", "州"),
     formatRules: list(
@@ -874,17 +677,17 @@ const countries: CountryRecord[] = [
     ),
     regionNotes: list(
       [
-        "州筛选是印度地址页最直接的入口。",
+        "州筛选后，会在多个城市、district 和街道种子之间切换。",
         "如果页面要更贴近真实表单，应同时展示 locality 或 district 字段。",
         "后续扩展时建议继续按州维护地址池。"
       ],
       [
-        "State filtering is the clearest entry point for India-focused pages.",
+        "After filtering by state, the generator rotates across multiple cities, districts, and street seeds.",
         "If the page should feel closer to real forms, locality or district should stay visible beside the state.",
         "As the dataset grows, keeping the pool organized by state remains the cleanest approach."
       ],
       [
-        "インド向けページでは、州フィルターがもっとも分かりやすい入口です。",
+        "州で絞り込んだ後も、複数の都市、district、通り種子を切り替えて生成できます。",
         "実際のフォームに近づけるなら、state と一緒に locality や district も見せる方が自然です。",
         "データが増えても、州単位で管理する形を維持するのが分かりやすいです。"
       ]
@@ -901,89 +704,12 @@ const countries: CountryRecord[] = [
     ),
     faq: buildFaq(text("印度", "India", "インド"), text("州", "state", "州")),
     stats: [
-      stats("覆盖州数", "Regions covered", "対象州数", "5", "覆盖 5 个常用州示例。", "Covers five common state examples.", "代表的な 5 州をカバーします。"),
-      stats("字段重点", "Field focus", "項目の焦点", "PIN", "PIN Code 与州字段是核心。", "PIN code and state fields are the core signals.", "PIN Code と州項目が中心です。"),
-      stats("页面定位", "Page intent", "ページ意図", "Structure", "更适合承接印度地址结构与字段理解需求。", "Best suited for India address-structure and field-understanding intent.", "インド住所の構造理解に向いたページです。")
+      stats("覆盖州数", "Regions covered", "対象州数", "5", "覆盖 5 个高需求州示例。", "Covers five high-demand state examples.", "需要の高い 5 州をカバーします。"),
+      stats("单州深度", "Depth per state", "州ごとの深さ", "150+", "每个州由多个城市、district 和街道种子扩展到 150+ 结果。", "Each state expands to 150+ results from multiple city, district, and street seeds.", "各州は複数の都市、district、通り種子から 150 件以上の結果に広がります。"),
+      stats("字段重点", "Field focus", "項目の焦点", "PIN", "PIN Code 与州字段是核心。", "PIN code and state fields are the core signals.", "PIN Code と州項目が中心です。")
     ],
-    regions: [
-      { code: "MH", name: text("马哈拉施特拉邦", "Maharashtra", "Maharashtra") },
-      { code: "DL", name: text("德里", "Delhi", "Delhi") },
-      { code: "KA", name: text("卡纳塔克邦", "Karnataka", "Karnataka") },
-      { code: "WB", name: text("西孟加拉邦", "West Bengal", "West Bengal") },
-      { code: "TS", name: text("特伦甘纳邦", "Telangana", "Telangana") }
-    ],
-    addresses: [
-      address(
-        "in-mh-pune-university",
-        "MH",
-        text("浦那大学", "Savitribai Phule Pune University", "Savitribai Phule Pune University"),
-        "Ganeshkhind Rd",
-        "Pune",
-        "411007",
-        18.5522,
-        73.8243,
-        {
-          district: "Pune",
-          phone: "+91 22 2000 0000"
-        }
-      ),
-      address(
-        "in-dl-kartavya-path",
-        "DL",
-        text("Kartavya Path", "Kartavya Path", "Kartavya Path"),
-        "Kartavya Path",
-        "New Delhi",
-        "110011",
-        28.6143,
-        77.1997,
-        {
-          district: "Central Delhi",
-          phone: "+91 11 2000 0000"
-        }
-      ),
-      address(
-        "in-ka-mg-road",
-        "KA",
-        text("圣马克路商业区", "MG Road", "MG Road"),
-        "Mahatma Gandhi Rd",
-        "Bengaluru",
-        "560001",
-        12.9756,
-        77.6066,
-        {
-          district: "Bengaluru Urban",
-          phone: "+91 80 2000 0000"
-        }
-      ),
-      address(
-        "in-wb-victoria",
-        "WB",
-        text("维多利亚纪念堂", "Victoria Memorial", "Victoria Memorial"),
-        "Jawaharlal Nehru Rd",
-        "Kolkata",
-        "700071",
-        22.5448,
-        88.3426,
-        {
-          district: "Kolkata",
-          phone: "+91 33 2000 0000"
-        }
-      ),
-      address(
-        "in-ts-tank-bund",
-        "TS",
-        text("Tank Bund", "Tank Bund Rd", "Tank Bund Rd"),
-        "Tank Bund Rd",
-        "Hyderabad",
-        "500080",
-        17.4239,
-        78.4738,
-        {
-          district: "Hyderabad",
-          phone: "+91 40 2000 0000"
-        }
-      )
-    ],
+    regions: inGeneratedRegions,
+    addresses: inGeneratedAddresses,
     relatedPosts: ["india-address-format-guide", "why-real-address-data"]
   }
 ];

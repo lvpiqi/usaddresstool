@@ -67,9 +67,22 @@ const filterHintByLocale: Record<Locale, string> = {
   ja: "\u307e\u305a\u5730\u57df\u3092\u9078\u3073\u3001\u305d\u306e\u5f8c\u306b\u751f\u6210\u3057\u307e\u3059\u3002\u5168\u5730\u57df\u304b\u3089\u30e9\u30f3\u30c0\u30e0\u3067\u3082\u3001\u7279\u5b9a\u306e\u5dde / \u5730\u57df\u6307\u5b9a\u3067\u3082\u4f7f\u3048\u307e\u3059\u3002"
 };
 
-const filterHint = filterHintByLocale[locale];
+const compactFilterHintByLocale: Record<Locale, string> = {
+  zh: "\u53ef\u968f\u673a\u5168\u90e8\u5730\u533a\uff0c\u4e5f\u53ef\u6307\u5b9a\u5dde / \u5730\u533a\u540e\u751f\u6210\u3002",
+  en: "Generate from all regions or target a specific state or area.",
+  ja: "\u5168\u5730\u57df\u304b\u3089\u30e9\u30f3\u30c0\u30e0\u3067\u3082\u3001\u7279\u5b9a\u306e\u5dde / \u5730\u57df\u6307\u5b9a\u3067\u3082\u751f\u6210\u3067\u304d\u307e\u3059\u3002"
+};
+
+const filterHint = compact
+  ? compactFilterHintByLocale[locale]
+  : filterHintByLocale[locale];
 
 const emptyHint = labels.emptyHint ?? emptyHintByLocale[locale];
+
+const compactRegionBadgeText =
+  countrySlug === "us"
+    ? ({ zh: "\u9009\u62e9\u5dde", en: "State", ja: "\u5dde\u9078\u629e" } as const)[locale]
+    : ({ zh: "\u9009\u62e9\u5730\u533a", en: "Region", ja: "\u5730\u57df\u9078\u629e" } as const)[locale];
 
 const fieldRows = [
   { key: "lastName", label: labels.fieldLabels.lastName, wide: false },
@@ -231,13 +244,28 @@ const configJson = JSON.stringify({
 
     <div class="generator-controls generator-controls--simple generator-controls--toolbar">
       <label class="field field--compact generator-toolbar__field">
-        <span>{labels.regionLabel}</span>
+        <span class="generator-toolbar__field-label">{labels.regionLabel}</span>
+        <span aria-hidden="true" class="generator-toolbar__field-tag">
+          {compactRegionBadgeText}
+        </span>
         <select data-region-select>
           <option value="">{labels.regionAll}</option>
           {regions.map((region) => (
             <option value={region.code}>{region.label}</option>
           ))}
         </select>
+        <span aria-hidden="true" class="generator-toolbar__field-caret">
+          <svg viewBox="0 0 20 20">
+            <path
+              d="m5.5 7.5 4.5 5 4.5-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.9"
+            ></path>
+          </svg>
+        </span>
       </label>
 
       <div class="generator-actions generator-actions--simple generator-actions--toolbar">
