@@ -152,7 +152,7 @@ const buildFaq = (country: LocalizedText, regionLabel: LocalizedText): FaqRecord
 
 const usRegions: RegionRecord[] = usGeneratedRegions.map((region) => ({
   code: region.code,
-  name: text(region.name.en, region.name.en, region.name.en)
+  name: text(region.name.zh, region.name.en, region.name.ja)
 }));
 
 const countries: CountryRecord[] = [
