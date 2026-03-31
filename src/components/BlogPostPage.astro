@@ -1,0 +1,154 @@
+---
+import Footer from "./Footer.astro";
+import Header from "./Header.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getBlogPost } from "../data/blog";
+import {
+  alternateLocaleLinks,
+  getHomePath,
+  getBlogIndexPath,
+  getBlogPath,
+  locales,
+  ui,
+  type Locale
+} from "../data/site";
+import { toAbsoluteUrl } from "../utils/seo";
+
+interface Props {
+  locale: Locale;
+  slug: string;
+}
+
+const { locale, slug } = Astro.props;
+const post = getBlogPost(slug);
+
+if (!post) {
+  throw new Error(`Unknown blog slug: ${slug}`);
+}
+
+const canonicalPath = getBlogPath(locale, slug);
+const canonicalUrl = toAbsoluteUrl(canonicalPath, Astro.site);
+const alternatePaths = Object.fromEntries(
+  locales.map((lang) => [lang, getBlogPath(lang, slug)])
+) as Record<Locale, string>;
+const strings = ui[locale];
+const relatedCopy = {
+  zh: {
+    title: "相关页面",
+    description: "继续查看和本文主题最相关的工具页、格式页和目录页。"
+  },
+  en: {
+    title: "Related pages",
+    description: "Continue with the tool, format, and directory pages most relevant to this topic."
+  },
+  ja: {
+    title: "関連ページ",
+    description: "このテーマと相性の良いツールページ、形式ページ、一覧ページも確認できます。"
+  }
+}[locale];
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title[locale],
+    description: post.description[locale],
+    datePublished: post.publishedAt,
+    inLanguage: locale,
+    mainEntityOfPage: canonicalUrl,
+    url: canonicalUrl
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: strings.common.breadcrumbsHome,
+        item: toAbsoluteUrl(getHomePath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: strings.nav.blog,
+        item: toAbsoluteUrl(getBlogIndexPath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.title[locale],
+        item: canonicalUrl
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={post.title[locale]}
+  description={post.description[locale]}
+  canonicalPath={canonicalPath}
+  alternates={alternateLocaleLinks(alternatePaths)}
+  schema={schema}
+  ogType="article"
+  publishedTime={post.publishedAt}
+>
+  <Header locale={locale} alternatePaths={alternatePaths} />
+
+  <main>
+    <article class="article-page">
+      <div class="container article-page__inner">
+        <p class="eyebrow">{strings.nav.blog}</p>
+        <h1>{post.title[locale]}</h1>
+        <p class="hero__copy">{post.description[locale]}</p>
+        <p class="article-meta">
+          {strings.common.updatedAt}: {post.publishedAt}
+        </p>
+
+        {post.sections.map((section) => (
+          <section class="article-section">
+            <h2>{section.heading[locale]}</h2>
+            {section.paragraphs[locale].map((paragraph) => (
+              <p set:html={paragraph} />
+            ))}
+            {section.bullets?.[locale] && (
+              <ul class="detail-list">
+                {section.bullets[locale].map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+
+        {post.relatedLinks?.length ? (
+          <section class="section section--compact">
+            <div class="section-heading">
+              <p class="eyebrow">{strings.common.relatedPosts}</p>
+              <h2>{relatedCopy.title}</h2>
+              <p>{relatedCopy.description}</p>
+            </div>
+            <div class="card-grid">
+              {post.relatedLinks.map((link) => (
+                <article class="link-card">
+                  <h3>{link.label[locale]}</h3>
+                  <p>{link.description[locale]}</p>
+                  <a class="text-link" href={link.path[locale]}>
+                    {strings.common.readMore}
+                  </a>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <a class="text-link" href={getBlogIndexPath(locale)}>
+          {strings.nav.blog}
+        </a>
+      </div>
+    </article>
+  </main>
+
+  <Footer locale={locale} />
+</BaseLayout>

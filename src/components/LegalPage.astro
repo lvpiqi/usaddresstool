@@ -1,0 +1,102 @@
+---
+import Footer from "./Footer.astro";
+import Header from "./Header.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { legalPages } from "../data/legal";
+import {
+  alternateLocaleLinks,
+  getHomePath,
+  getInfoPath,
+  locales,
+  type InfoPageKey,
+  type Locale
+} from "../data/site";
+import { toAbsoluteUrl } from "../utils/seo";
+
+interface Props {
+  locale: Locale;
+  pageKey: InfoPageKey;
+}
+
+const { locale, pageKey } = Astro.props;
+const page = legalPages[pageKey];
+const canonicalPath = getInfoPath(locale, pageKey);
+const alternatePaths = Object.fromEntries(
+  locales.map((lang) => [lang, getInfoPath(lang, pageKey)])
+) as Record<Locale, string>;
+
+const updatedLabels = {
+  zh: "最后更新",
+  en: "Last updated",
+  ja: "最終更新"
+}[locale];
+const noindex = pageKey !== "about";
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: page.title[locale],
+    description: page.description[locale],
+    url: toAbsoluteUrl(canonicalPath, Astro.site)
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name:
+          locale === "zh" ? "首页" : locale === "en" ? "Home" : "ホーム",
+        item: toAbsoluteUrl(getHomePath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: page.title[locale],
+        item: toAbsoluteUrl(canonicalPath, Astro.site)
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={page.title[locale]}
+  description={page.description[locale]}
+  canonicalPath={canonicalPath}
+  alternates={alternateLocaleLinks(alternatePaths)}
+  schema={schema}
+  noindex={noindex}
+>
+  <Header locale={locale} alternatePaths={alternatePaths} />
+
+  <main>
+    <section class="hero hero--simple">
+      <div class="container">
+        <p class="eyebrow">{page.title[locale]}</p>
+        <h1>{page.title[locale]}</h1>
+        <p class="hero__copy">{page.description[locale]}</p>
+        <p class="legal-meta">
+          {updatedLabels}: {page.updatedAt[locale]}
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container prose-card">
+        {page.sections.map((section) => (
+          <section class="article-section">
+            <h2>{section.heading[locale]}</h2>
+            {section.paragraphs[locale].map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+          </section>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <Footer locale={locale} />
+</BaseLayout>

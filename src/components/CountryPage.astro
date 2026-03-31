@@ -1,0 +1,287 @@
+---
+import type { GeneratorLabels } from "./address-generator.types";
+import AddressGeneratorTool from "./AddressGeneratorTool.astro";
+import Footer from "./Footer.astro";
+import Header from "./Header.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { countries, getCountryBySlug } from "../data/countries";
+import { withCountryContent } from "../data/country-content";
+import { getBlogPost } from "../data/blog";
+import {
+  getRuntimeRegionDisplayName,
+  getRuntimeRegions
+} from "../data/runtime-country-data";
+import {
+  alternateLocaleLinks,
+  getBlogPath,
+  getCountryPath,
+  getFormatPath,
+  getHomePath,
+  locales,
+  ui,
+  type Locale
+} from "../data/site";
+import { toAbsoluteUrl } from "../utils/seo";
+
+interface Props {
+  locale: Locale;
+  countrySlug: string;
+}
+
+const { locale, countrySlug } = Astro.props;
+const country = getCountryBySlug(countrySlug);
+
+if (!country) {
+  throw new Error(`Unknown country slug: ${countrySlug}`);
+}
+
+const pageCountry = withCountryContent(country);
+
+const strings = ui[locale];
+const canonicalPath = getCountryPath(locale, country.slug);
+const canonicalUrl = toAbsoluteUrl(canonicalPath, Astro.site);
+const alternatePaths = Object.fromEntries(
+  locales.map((lang) => [lang, getCountryPath(lang, country.slug)])
+) as Record<Locale, string>;
+const alternates = alternateLocaleLinks(alternatePaths);
+const relatedPosts = pageCountry.relatedPosts
+  .map((slug) => getBlogPost(slug))
+  .filter(Boolean);
+const quickCountries = countries.filter((entry) => entry.slug !== country.slug).slice(0, 5);
+const runtimeRegions = getRuntimeRegions(country).map((region) => ({
+  code: region.code,
+  label: getRuntimeRegionDisplayName(country, region, locale)
+}));
+const sectionTitles = {
+  format: {
+    zh: `${pageCountry.name[locale]}地址格式要点`,
+    en: `${pageCountry.name[locale]} Address Format`,
+    ja: `${pageCountry.name[locale]}の住所形式`
+  },
+  sample: {
+    zh: `${pageCountry.name[locale]}地址示例`,
+    en: `${pageCountry.name[locale]} Example Address`,
+    ja: `${pageCountry.name[locale]}の住所例`
+  },
+  region: {
+    zh: `${pageCountry.regionLabel[locale]}筛选说明`,
+    en: `${pageCountry.regionLabel[locale]} Filter Notes`,
+    ja: `${pageCountry.regionLabel[locale]}フィルターの説明`
+  },
+  useCases: {
+    zh: `${pageCountry.name[locale]}地址适用场景`,
+    en: `When To Use ${pageCountry.name[locale]} Addresses`,
+    ja: `${pageCountry.name[locale]}住所の使いどころ`
+  },
+  faq: {
+    zh: `${pageCountry.name[locale]}地址常见问题`,
+    en: `${pageCountry.name[locale]} Address FAQ`,
+    ja: `${pageCountry.name[locale]}住所の FAQ`
+  },
+  related: {
+    zh: `${pageCountry.name[locale]}地址相关文章`,
+    en: `More About ${pageCountry.name[locale]} Addresses`,
+    ja: `${pageCountry.name[locale]}住所の関連記事`
+  }
+};
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: pageCountry.heading[locale],
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Web",
+    description: pageCountry.metaDescription[locale]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: pageCountry.faq.map((item) => ({
+      "@type": "Question",
+      name: item.question[locale],
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer[locale]
+      }
+    }))
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: strings.common.breadcrumbsHome,
+        item: toAbsoluteUrl(getHomePath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: pageCountry.heading[locale],
+        item: canonicalUrl
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={pageCountry.heading[locale]}
+  description={pageCountry.metaDescription[locale]}
+  canonicalPath={canonicalPath}
+  alternates={alternates}
+  schema={schema}
+>
+  <Header
+    locale={locale}
+    alternatePaths={alternatePaths}
+    currentCountrySlug={country.slug}
+  />
+
+  <main>
+    <section class="hero hero--tool">
+      <div class="container hero-shell">
+        <div class="hero__tool hero__tool--center">
+          <AddressGeneratorTool
+            locale={locale}
+            countrySlug={country.slug}
+            countryHeading={pageCountry.heading[locale]}
+            regions={runtimeRegions}
+            labels={strings.generator as unknown as GeneratorLabels}
+            showIntro={true}
+            compact={true}
+            introEyebrow={pageCountry.name[locale]}
+            introDescription={pageCountry.heroIntro[locale]}
+            introMeta={strings.heroBadges.join(" · ")}
+            introHeadingTag="h1"
+          />
+        </div>
+
+        <nav
+          class="country-chip-row country-chip-row--minimal"
+          aria-label={strings.nav.countries}
+        >
+          {quickCountries.map((entry) => (
+            <a class="country-chip" href={getCountryPath(locale, entry.slug)}>
+              {entry.name[locale]}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </section>
+
+    <section class="section section--compact">
+      <div class="container hero-stats hero-stats--strip">
+        {pageCountry.stats.map((stat) => (
+          <article class="stat-card">
+            <p>{stat.label[locale]}</p>
+            <strong>{stat.value}</strong>
+            <span>{stat.description[locale]}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container content-grid">
+        <article class="content-card">
+          <p class="eyebrow">{strings.sections.formatGuide}</p>
+          <h2>{sectionTitles.format[locale]}</h2>
+          <ul class="detail-list">
+            {pageCountry.formatRules[locale].map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+          <a class="text-link" href={getFormatPath(locale, country.slug)}>
+            {strings.common.readMore}
+          </a>
+        </article>
+
+        <article class="content-card">
+          <p class="eyebrow">{strings.sections.sampleAddress}</p>
+          <h2>{sectionTitles.sample[locale]}</h2>
+          <div class="address-sample">
+            {pageCountry.sampleAddress[locale].map((line) => (
+              <span>{line}</span>
+            ))}
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container content-grid">
+        <article class="content-card">
+          <p class="eyebrow">{strings.sections.regionGuide}</p>
+          <h2>{sectionTitles.region[locale]}</h2>
+          <ul class="detail-list">
+            {pageCountry.regionNotes[locale].map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+
+        <article class="content-card">
+          <p class="eyebrow">{strings.sections.useCases}</p>
+          <h2>{sectionTitles.useCases[locale]}</h2>
+          <ul class="detail-list">
+            {pageCountry.useCases[locale].map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{strings.sections.faq}</p>
+          <h2>{sectionTitles.faq[locale]}</h2>
+        </div>
+        <div class="faq-list">
+          {pageCountry.faq.map((item) => (
+            <details class="faq-item">
+              <summary>{item.question[locale]}</summary>
+              <p>{item.answer[locale]}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--compact">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{strings.common.relatedPosts}</p>
+          <h2>{sectionTitles.related[locale]}</h2>
+        </div>
+        <div class="card-grid">
+          {relatedPosts.map((post) =>
+            post ? (
+              <article class="link-card">
+                <h3>{post.title[locale]}</h3>
+                <p>{post.description[locale]}</p>
+                <a class="text-link" href={getBlogPath(locale, post.slug)}>
+                  {strings.common.readMore}
+                </a>
+              </article>
+            ) : null
+          )}
+          <article class="link-card">
+            <h3>{strings.common.countryFormats}</h3>
+            <p>{pageCountry.directoryExcerpt[locale]}</p>
+            <a class="text-link" href={getFormatPath(locale, country.slug)}>
+              {strings.common.readMore}
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer locale={locale} />
+</BaseLayout>

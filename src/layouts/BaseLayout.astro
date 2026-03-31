@@ -1,0 +1,79 @@
+---
+import "../styles/global.css";
+import { localeMeta, siteConfig, ui, type Locale } from "../data/site";
+
+interface AlternateLink {
+  hreflang: string;
+  href: string;
+}
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  canonicalPath: string;
+  alternates?: AlternateLink[];
+  schema?: unknown[];
+  noindex?: boolean;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
+}
+
+const {
+  locale,
+  title,
+  description,
+  canonicalPath,
+  alternates = [],
+  schema = [],
+  noindex = false,
+  ogType = "website",
+  publishedTime,
+  modifiedTime
+} = Astro.props;
+
+const htmlLang = localeMeta[locale].htmlLang;
+const fullTitle = `${title} | ${ui[locale].metaTitleSuffix}`;
+const canonicalUrl = Astro.site
+  ? new URL(canonicalPath, Astro.site).toString()
+  : canonicalPath;
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta
+      name="robots"
+      content={noindex ? "noindex,follow" : "index,follow,max-image-preview:large"}
+    />
+    <meta name="generator" content={siteConfig.name} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteConfig.name} />
+    <meta property="og:locale" content={htmlLang} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    {publishedTime ? <meta property="article:published_time" content={publishedTime} /> : null}
+    {modifiedTime ? <meta property="article:modified_time" content={modifiedTime} /> : null}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hreflang} href={Astro.site ? new URL(alternate.href, Astro.site).toString() : alternate.href} />
+    ))}
+    {schema.map((entry) => (
+      <script type="application/ld+json" set:html={JSON.stringify(entry)} />
+    ))}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

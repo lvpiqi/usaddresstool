@@ -1,0 +1,299 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Footer from "./Footer.astro";
+import { getCountryBySlug } from "../data/countries";
+import {
+  getBlogIndexPath,
+  getCountriesPath,
+  getCountryPath,
+  getHomePath,
+  getTaxFreePath,
+  localeMeta,
+  locales,
+  siteConfig,
+  ui,
+  type Locale
+} from "../data/site";
+
+interface Props {
+  locale: Locale;
+  statusCode: 403 | 404 | 500 | 503;
+}
+
+const { locale, statusCode } = Astro.props;
+const strings = ui[locale];
+
+const getStatusPath = (lang: Locale, code: 403 | 404 | 500 | 503) =>
+  lang === "zh" ? `/${code}/` : `/${lang}/${code}/`;
+
+const alternatePaths = Object.fromEntries(
+  locales.map((lang) => [lang, getStatusPath(lang, statusCode)])
+) as Record<Locale, string>;
+
+const taxFreeLabel = {
+  zh: "美国免税州地址页",
+  en: "US tax-free address page",
+  ja: "米国免税州住所ページ"
+}[locale];
+
+const usCountry = getCountryBySlug("us");
+const jpCountry = getCountryBySlug("jp");
+
+if (!usCountry || !jpCountry) {
+  throw new Error("Required country records for error pages are missing");
+}
+
+const pageCopy = {
+  403: {
+    title: {
+      zh: "当前页面不可访问",
+      en: "This Page Is Not Available",
+      ja: "このページにはアクセスできません"
+    },
+    description: {
+      zh: "这个页面当前没有开放访问，或当前请求不满足访问条件。",
+      en: "This page is currently restricted, or the current request does not meet the access requirements.",
+      ja: "このページは現在公開されていないか、今回のリクエスト条件ではアクセスできません。"
+    },
+    note: {
+      zh: "如果这不是预期情况，建议检查访问控制、部署规则或 Worker 路由配置。",
+      en: "If this is unexpected, review your access rules, deployment settings, or Worker route configuration.",
+      ja: "想定外なら、アクセス制御、デプロイ設定、または Worker ルート構成を確認してください。"
+    },
+    secondaryLabel: {
+      zh: "浏览国家页",
+      en: "Browse country pages",
+      ja: "国別ページを見る"
+    },
+    secondaryHref: getCountriesPath(locale)
+  },
+  404: {
+    title: {
+      zh: "页面不存在",
+      en: "Page Not Found",
+      ja: "ページが見つかりません"
+    },
+    description: {
+      zh: "你打开的链接可能已经失效、被移动，或者输入地址时出现了错误。",
+      en: "The link may be outdated, the page may have moved, or the address may have been entered incorrectly.",
+      ja: "リンクが古いか、ページが移動されたか、URL の入力に誤りがある可能性があります。"
+    },
+    note: {
+      zh: "如果这是站内跳转过来的页面，后续建议把失效内链也一并修掉。",
+      en: "If this came from an internal link, it is worth fixing the broken link in the site structure as well.",
+      ja: "サイト内リンクから来た場合は、あわせて切れた内部リンクも修正すると安全です。"
+    },
+    secondaryLabel: {
+      zh: "浏览国家页",
+      en: "Browse country pages",
+      ja: "国別ページを見る"
+    },
+    secondaryHref: getCountriesPath(locale)
+  },
+  500: {
+    title: {
+      zh: "服务器暂时出错",
+      en: "Temporary Server Error",
+      ja: "サーバーで一時的なエラーが発生しました"
+    },
+    description: {
+      zh: "请求已经到达站点，但当前页面暂时无法正常响应。",
+      en: "The request reached the site, but the page could not be rendered successfully right now.",
+      ja: "リクエストはサイトに届きましたが、現在このページを正常に表示できません。"
+    },
+    note: {
+      zh: "你可以先返回核心工具页继续使用，或者直接重新加载当前页面。",
+      en: "You can return to a stable generator page first, or simply reload this page and try again.",
+      ja: "まず安定しているツールページへ戻るか、このページを再読み込みしてください。"
+    },
+    secondaryLabel: {
+      zh: "查看博客",
+      en: "Open the blog",
+      ja: "ブログを見る"
+    },
+    secondaryHref: getBlogIndexPath(locale)
+  },
+  503: {
+    title: {
+      zh: "服务暂时不可用",
+      en: "Service Temporarily Unavailable",
+      ja: "サービスは一時的に利用できません"
+    },
+    description: {
+      zh: "站点可能正在维护、冷启动，或者依赖服务暂时不可用。",
+      en: "The site may be warming up, under maintenance, or waiting on a temporary upstream dependency.",
+      ja: "サイトがウォームアップ中か、メンテナンス中か、一時的な依存サービス障害の可能性があります。"
+    },
+    note: {
+      zh: "这种情况通常在稍后刷新后就能恢复，不一定是永久故障。",
+      en: "In many cases this clears on its own after a short wait, so it is not always a permanent failure.",
+      ja: "少し待ってから再読み込みすると解消することが多く、恒久的な障害とは限りません。"
+    },
+    secondaryLabel: {
+      zh: "查看博客",
+      en: "Open the blog",
+      ja: "ブログを見る"
+    },
+    secondaryHref: getBlogIndexPath(locale)
+  }
+}[statusCode];
+
+const quickCopy = {
+  zh: {
+    eyebrow: "快速返回",
+    title: "你可能想继续访问这些页面",
+    description: "下面这些入口覆盖了首页工具、热门国家页和内容目录，适合从错误页直接回到主流程。",
+    primary: "返回首页",
+    retry: "重新加载"
+  },
+  en: {
+    eyebrow: "Quick paths",
+    title: "These pages are a good place to continue",
+    description: "Use these links to jump back into the main tool flow, popular country pages, or content directories.",
+    primary: "Back to home",
+    retry: "Reload page"
+  },
+  ja: {
+    eyebrow: "クイック導線",
+    title: "ここから主要ページへ戻れます",
+    description: "トップのツールページ、人気国ページ、コンテンツ一覧へすぐ戻れる導線を用意しています。",
+    primary: "ホームへ戻る",
+    retry: "再読み込み"
+  }
+}[locale];
+
+const quickLinks = [
+  {
+    title: usCountry.heading[locale],
+    description: {
+      zh: "返回首页，继续按州生成美国地址和 ZIP Code 结果。",
+      en: "Return to the home page and keep generating US addresses by state and ZIP code.",
+      ja: "トップページへ戻り、州別のアメリカ住所と ZIP Code 生成を続けられます。"
+    }[locale],
+    href: getHomePath(locale)
+  },
+  {
+    title: taxFreeLabel,
+    description: {
+      zh: "直接进入美国免税州地址页，查看 5 个免税州筛选结果。",
+      en: "Open the dedicated tax-free page and filter through the 5 sales-tax-free states.",
+      ja: "米国免税州ページへ移動し、5 つの免税州で絞り込めます。"
+    }[locale],
+    href: getTaxFreePath(locale)
+  },
+  {
+    title: jpCountry.heading[locale],
+    description: {
+      zh: "快速回到日本地址生成器，继续查看都道府县和邮编格式。",
+      en: "Jump to the Japan generator and continue exploring prefecture and postal-code formats.",
+      ja: "日本住所ジェネレーターへ戻り、都道府県と郵便番号形式を確認できます。"
+    }[locale],
+    href: getCountryPath(locale, "jp")
+  },
+  {
+    title: strings.nav.countries,
+    description: strings.directory.countriesDescription,
+    href: getCountriesPath(locale)
+  }
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={`${statusCode} ${pageCopy.title[locale]}`}
+  description={pageCopy.description[locale]}
+  canonicalPath={getStatusPath(locale, statusCode)}
+  alternates={locales.map((lang) => ({
+    hreflang: localeMeta[lang].htmlLang,
+    href: getStatusPath(lang, statusCode)
+  }))}
+  noindex={true}
+>
+  <header class="status-topbar">
+    <div class="container status-topbar__inner">
+      <a class="site-logo" href={getHomePath(locale)}>
+        <span class="site-logo__mark">US</span>
+        <span class="site-logo__copy">
+          <strong>{siteConfig.name}</strong>
+          <small>{statusCode}</small>
+        </span>
+      </a>
+
+      <div class="language-switch" aria-label="Error page language switcher">
+        {locales.map((code) => (
+          <a
+            href={getStatusPath(code, statusCode)}
+            class:list={{
+              "language-switch__link": true,
+              "language-switch__link--active": code === locale
+            }}
+            lang={localeMeta[code].htmlLang}
+          >
+            {localeMeta[code].label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </header>
+
+  <main class="status-page">
+    <section class="hero hero--simple">
+      <div class="container status-shell">
+        <section class="status-card">
+          <p class="eyebrow">HTTP {statusCode}</p>
+          <p class="status-code" aria-hidden="true">{statusCode}</p>
+          <h1>{pageCopy.title[locale]}</h1>
+          <p class="hero__copy">{pageCopy.description[locale]}</p>
+          <p class="status-note">{pageCopy.note[locale]}</p>
+
+          <div class="status-actions">
+            <a class="button button--primary" href={getHomePath(locale)}>
+              {quickCopy.primary}
+            </a>
+            <a class="button button--ghost" href={pageCopy.secondaryHref}>
+              {pageCopy.secondaryLabel[locale]}
+            </a>
+            {statusCode >= 500 ? (
+              <button class="button button--ghost" data-reload-page type="button">
+                {quickCopy.retry}
+              </button>
+            ) : null}
+          </div>
+        </section>
+
+        <section class="status-links">
+          <div class="section-heading">
+            <p class="eyebrow">{quickCopy.eyebrow}</p>
+            <h2>{quickCopy.title}</h2>
+            <p>{quickCopy.description}</p>
+          </div>
+
+          <div class="card-grid">
+            {quickLinks.map((link) => (
+              <article class="link-card">
+                <h3>{link.title}</h3>
+                <p>{link.description}</p>
+                <a class="text-link" href={link.href}>
+                  {strings.common.readMore}
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <Footer locale={locale} />
+  <script is:inline>
+    document.querySelectorAll("[data-reload-page]").forEach((node) => {
+      if (!(node instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      node.addEventListener("click", () => {
+        window.location.reload();
+      });
+    });
+  </script>
+</BaseLayout>

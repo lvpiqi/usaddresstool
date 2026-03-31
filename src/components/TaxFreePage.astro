@@ -1,0 +1,201 @@
+---
+import type { GeneratorLabels } from "./address-generator.types";
+import AddressGeneratorTool from "./AddressGeneratorTool.astro";
+import Footer from "./Footer.astro";
+import Header from "./Header.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCountryBySlug } from "../data/countries";
+import {
+  getRuntimeRegionDisplayName,
+  getRuntimeRegions
+} from "../data/runtime-country-data";
+import { taxFreePage, getTaxFreeGeneratorLabels } from "../data/tax-free-page";
+import {
+  alternateLocaleLinks,
+  getHomePath,
+  getTaxFreePath,
+  locales,
+  ui,
+  type Locale
+} from "../data/site";
+import { toAbsoluteUrl } from "../utils/seo";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const country = getCountryBySlug("us");
+
+if (!country) {
+  throw new Error("US country dataset not found");
+}
+
+const strings = ui[locale];
+const runtimeRegions = getRuntimeRegions(country, "tax-free");
+const generatorRegions = runtimeRegions.map((region) => ({
+  code: region.code,
+  label: getRuntimeRegionDisplayName(country, region, locale)
+}));
+const canonicalPath = getTaxFreePath(locale);
+const canonicalUrl = toAbsoluteUrl(canonicalPath, Astro.site);
+const alternatePaths = Object.fromEntries(
+  locales.map((lang) => [lang, getTaxFreePath(lang)])
+) as Record<Locale, string>;
+const alternates = alternateLocaleLinks(alternatePaths);
+const generatorLabels = {
+  ...strings.generator,
+  ...getTaxFreeGeneratorLabels(locale)
+} as GeneratorLabels;
+const sectionTitles = {
+  states: {
+    zh: "美国免税州列表",
+    en: "US Tax-Free States",
+    ja: "アメリカ免税州一覧"
+  },
+  useCases: {
+    zh: "免税州地址适用场景",
+    en: "When To Use Tax-Free State Addresses",
+    ja: "免税州住所の使いどころ"
+  },
+  faq: {
+    zh: "免税州地址常见问题",
+    en: "Tax-Free State Address FAQ",
+    ja: "免税州住所の FAQ"
+  }
+};
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: taxFreePage.title[locale],
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Web",
+    description: taxFreePage.description[locale]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: taxFreePage.faq.map((item) => ({
+      "@type": "Question",
+      name: item.question[locale],
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer[locale]
+      }
+    }))
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: strings.common.breadcrumbsHome,
+        item: toAbsoluteUrl(getHomePath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: taxFreePage.title[locale],
+        item: canonicalUrl
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={taxFreePage.title[locale]}
+  description={taxFreePage.description[locale]}
+  canonicalPath={canonicalPath}
+  alternates={alternates}
+  schema={schema}
+>
+  <Header
+    locale={locale}
+    alternatePaths={alternatePaths}
+    currentSpecialPage="tax-free"
+  />
+
+  <main>
+    <section class="hero hero--tool">
+      <div class="container hero-shell">
+        <div class="hero__tool hero__tool--center">
+          <AddressGeneratorTool
+            locale={locale}
+            countrySlug={country.slug}
+            countryHeading={taxFreePage.title[locale]}
+            regions={generatorRegions}
+            labels={generatorLabels}
+            showIntro={true}
+            compact={true}
+            profile="tax-free"
+            introEyebrow={country.name[locale]}
+            introDescription={taxFreePage.intro[locale]}
+            introMeta={taxFreePage.badges[locale].join(" · ")}
+            introHeadingTag="h1"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--compact">
+      <div class="container hero-stats hero-stats--strip">
+        {taxFreePage.stats.map((stat) => (
+          <article class="stat-card">
+            <p>{stat.label[locale]}</p>
+            <strong>{stat.value}</strong>
+            <span>{stat.description[locale]}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container content-grid">
+        <article class="content-card">
+          <p class="eyebrow">{taxFreePage.sectionTitleStates[locale]}</p>
+          <h2>{sectionTitles.states[locale]}</h2>
+          <ul class="detail-list">
+            {runtimeRegions.map((region) => (
+              <li>{getRuntimeRegionDisplayName(country, region, locale)}</li>
+            ))}
+          </ul>
+        </article>
+
+        <article class="content-card">
+          <p class="eyebrow">{taxFreePage.usageTitle[locale]}</p>
+          <h2>{sectionTitles.useCases[locale]}</h2>
+          <ul class="detail-list">
+            {taxFreePage.useCases[locale].map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">{taxFreePage.faqTitle[locale]}</p>
+          <h2>{sectionTitles.faq[locale]}</h2>
+        </div>
+        <div class="faq-list">
+          {taxFreePage.faq.map((item) => (
+            <details class="faq-item">
+              <summary>{item.question[locale]}</summary>
+              <p>{item.answer[locale]}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer locale={locale} />
+</BaseLayout>

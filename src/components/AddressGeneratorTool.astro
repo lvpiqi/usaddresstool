@@ -1,0 +1,432 @@
+---
+import type {
+  GeneratorLabels,
+  GeneratorRegionOption
+} from "./address-generator.types";
+import type { Locale } from "../data/site";
+import addressGeneratorScriptUrl from "../scripts/address-generator.js?url";
+
+interface Props {
+  locale: Locale;
+  countrySlug: string;
+  countryHeading: string;
+  regions: GeneratorRegionOption[];
+  labels: GeneratorLabels;
+  showIntro?: boolean;
+  compact?: boolean;
+  profile?: string;
+  introEyebrow?: string;
+  introDescription?: string;
+  introMeta?: string;
+  introHeadingTag?: string;
+}
+
+const {
+  locale,
+  countrySlug,
+  countryHeading,
+  regions,
+  labels,
+  showIntro = true,
+  compact = false,
+  profile = "default",
+  introEyebrow = labels.title,
+  introDescription = labels.description,
+  introMeta,
+  introHeadingTag = "h2"
+} = Astro.props as Props;
+
+const containerClass = [
+  "generator-card",
+  "generator-card--worker",
+  compact ? "generator-card--compact" : ""
+]
+  .filter(Boolean)
+  .join(" ");
+
+const introClass = [
+  "generator-intro",
+  compact ? "generator-intro--hero" : ""
+]
+  .filter(Boolean)
+  .join(" ");
+
+const storageKey =
+  profile === "default"
+    ? `us-address-tool:v2:${countrySlug}:saved`
+    : `us-address-tool:v2:${countrySlug}:${profile}:saved`;
+
+const emptyHintByLocale: Record<Locale, string> = {
+  zh: "\u9009\u62e9\u4e0a\u65b9\u5730\u533a\u540e\u70b9\u51fb\u201c\u751f\u6210\u5730\u5740\u201d\uff0c\u7ed3\u679c\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002",
+  en: "Choose a region above and click generate. The result will appear here.",
+  ja: "\u4e0a\u306e\u5730\u57df\u3092\u9078\u3093\u3067\u751f\u6210\u3059\u308b\u3068\u3001\u3053\u3053\u306b\u7d50\u679c\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002"
+};
+
+const filterHintByLocale: Record<Locale, string> = {
+  zh: "\u5148\u9009\u62e9\u5730\u533a\uff0c\u518d\u751f\u6210\u5730\u5740\u3002\u53ef\u4ee5\u968f\u673a\u5168\u90e8\u5730\u533a\uff0c\u4e5f\u53ef\u4ee5\u6307\u5b9a\u5dde / \u5730\u533a\u3002",
+  en: "Pick a region first, then generate. You can stay random across all regions or target a specific state or area.",
+  ja: "\u307e\u305a\u5730\u57df\u3092\u9078\u3073\u3001\u305d\u306e\u5f8c\u306b\u751f\u6210\u3057\u307e\u3059\u3002\u5168\u5730\u57df\u304b\u3089\u30e9\u30f3\u30c0\u30e0\u3067\u3082\u3001\u7279\u5b9a\u306e\u5dde / \u5730\u57df\u6307\u5b9a\u3067\u3082\u4f7f\u3048\u307e\u3059\u3002"
+};
+
+const filterHint = filterHintByLocale[locale];
+
+const emptyHint = labels.emptyHint ?? emptyHintByLocale[locale];
+
+const fieldRows = [
+  { key: "lastName", label: labels.fieldLabels.lastName, wide: false },
+  { key: "firstName", label: labels.fieldLabels.firstName, wide: false },
+  { key: "gender", label: labels.fieldLabels.gender, wide: false },
+  { key: "phone", label: labels.fieldLabels.phone, wide: false },
+  { key: "email", label: labels.fieldLabels.email, wide: true },
+  { key: "street", label: labels.fieldLabels.street, wide: false },
+  { key: "city", label: labels.fieldLabels.city, wide: false },
+  {
+    key: "stateFullName",
+    label: labels.fieldLabels.stateFullName,
+    wide: false
+  },
+  { key: "postalCode", label: labels.fieldLabels.postalCode, wide: false },
+  { key: "fullAddress", label: labels.fieldLabels.fullAddress, wide: true }
+];
+
+const savedUiByLocale = {
+  zh: {
+    exportLabel: "\u5bfc\u51fa",
+    exportStatus: "\u5df2\u5bfc\u51fa\u4fdd\u5b58\u7684\u5730\u5740",
+    rowTitle: "\u70b9\u51fb\u6062\u590d\u8fd9\u6761\u5730\u5740",
+    columns: {
+      name: "\u59d3\u540d",
+      gender: "\u6027\u522b",
+      phone: "\u7535\u8bdd",
+      address: "\u5730\u5740",
+      actions: "\u64cd\u4f5c"
+    }
+  },
+  en: {
+    exportLabel: "Export",
+    exportStatus: "Saved addresses exported",
+    rowTitle: "Click to restore this address",
+    columns: {
+      name: "Name",
+      gender: "Gender",
+      phone: "Phone",
+      address: "Address",
+      actions: "Actions"
+    }
+  },
+  ja: {
+    exportLabel: "\u30a8\u30af\u30b9\u30dd\u30fc\u30c8",
+    exportStatus: "\u4fdd\u5b58\u3057\u305f\u4f4f\u6240\u3092\u30a8\u30af\u30b9\u30dd\u30fc\u30c8\u3057\u307e\u3057\u305f",
+    rowTitle: "\u3053\u306e\u4f4f\u6240\u3092\u5fa9\u5143",
+    columns: {
+      name: "\u6c0f\u540d",
+      gender: "\u6027\u5225",
+      phone: "\u96fb\u8a71",
+      address: "\u4f4f\u6240",
+      actions: "\u64cd\u4f5c"
+    }
+  }
+};
+
+const shareUiByLocale = {
+  zh: {
+    title: "\u5206\u4eab",
+    previewLabel: "\u9884\u89c8\uff08\u53ea\u8bfb\uff09",
+    previewHeading: "\u5730\u5740\u5206\u4eab\u9884\u89c8",
+    linkLabel: "\u5206\u4eab\u94fe\u63a5",
+    copyText: "\u590d\u5236\u6587\u672c",
+    systemShare: "\u7cfb\u7edf\u5206\u4eab",
+    close: "\u5173\u95ed",
+    generatedPrefix: "\u7531 ",
+    generatedSuffix: " \u751f\u6210",
+    linkCopied: "\u5206\u4eab\u94fe\u63a5\u5df2\u590d\u5236",
+    textCopied: "\u5206\u4eab\u6587\u672c\u5df2\u590d\u5236",
+    systemFallback: "\u5f53\u524d\u6d4f\u89c8\u5668\u4e0d\u652f\u6301\u7cfb\u7edf\u5206\u4eab\uff0c\u5df2\u590d\u5236\u5206\u4eab\u94fe\u63a5"
+  },
+  en: {
+    title: "Share",
+    previewLabel: "Preview (read-only)",
+    previewHeading: "Address share preview",
+    linkLabel: "Share link",
+    copyText: "Copy text",
+    systemShare: "System share",
+    close: "Close",
+    generatedPrefix: "Generated by ",
+    generatedSuffix: "",
+    linkCopied: "Share link copied",
+    textCopied: "Share text copied",
+    systemFallback: "System share is not available, so the share link was copied"
+  },
+  ja: {
+    title: "\u5171\u6709",
+    previewLabel: "\u30d7\u30ec\u30d3\u30e5\u30fc\uff08\u8aad\u307f\u53d6\u308a\u5c02\u7528\uff09",
+    previewHeading: "\u4f4f\u6240\u5171\u6709\u30d7\u30ec\u30d3\u30e5\u30fc",
+    linkLabel: "\u5171\u6709\u30ea\u30f3\u30af",
+    copyText: "\u30c6\u30ad\u30b9\u30c8\u3092\u30b3\u30d4\u30fc",
+    systemShare: "\u30b7\u30b9\u30c6\u30e0\u5171\u6709",
+    close: "\u9589\u3058\u308b",
+    generatedPrefix: "",
+    generatedSuffix: " \u3067\u751f\u6210",
+    linkCopied: "\u5171\u6709\u30ea\u30f3\u30af\u3092\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f",
+    textCopied: "\u5171\u6709\u30c6\u30ad\u30b9\u30c8\u3092\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f",
+    systemFallback: "\u30b7\u30b9\u30c6\u30e0\u5171\u6709\u306f\u4f7f\u3048\u306a\u3044\u305f\u3081\u3001\u5171\u6709\u30ea\u30f3\u30af\u3092\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f"
+  }
+};
+
+const configJson = JSON.stringify({
+  locale,
+  countrySlug,
+  countryHeading,
+  profile,
+  storageKey,
+  emptyHint,
+  labels,
+  savedUi: savedUiByLocale[locale],
+  shareUi: shareUiByLocale[locale]
+}).replace(/</g, "\\u003c");
+---
+
+<section
+  id="saved-addresses"
+  class={containerClass}
+  data-address-generator
+>
+  <div class="copy-toast" data-copy-toast hidden>
+    <span class="copy-toast__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M20 7 9.5 17.5 4 12"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2.4"
+        ></path>
+      </svg>
+    </span>
+    <span data-copy-toast-message>{labels.statusCopied}</span>
+  </div>
+
+  {showIntro ? (
+    <div class={introClass}>
+      <p class="eyebrow">{introEyebrow}</p>
+      {
+        introHeadingTag === "h1" ? (
+          <h1 class="section-title">{countryHeading}</h1>
+        ) : introHeadingTag === "h3" ? (
+          <h3 class="section-title">{countryHeading}</h3>
+        ) : (
+          <h2 class="section-title">{countryHeading}</h2>
+        )
+      }
+      <p class="section-copy">{introDescription}</p>
+      {introMeta ? <p class="generator-intro__meta">{introMeta}</p> : null}
+    </div>
+  ) : null}
+
+  <section class="generator-toolbar" aria-label={labels.regionLabel}>
+    <div class="generator-toolbar__head">
+      <p class="generator-toolbar__eyebrow">{labels.regionLabel}</p>
+      <p class="generator-toolbar__hint">{filterHint}</p>
+    </div>
+
+    <div class="generator-controls generator-controls--simple generator-controls--toolbar">
+      <label class="field field--compact generator-toolbar__field">
+        <span>{labels.regionLabel}</span>
+        <select data-region-select>
+          <option value="">{labels.regionAll}</option>
+          {regions.map((region) => (
+            <option value={region.code}>{region.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <div class="generator-actions generator-actions--simple generator-actions--toolbar">
+        <button class="button button--primary" data-generate-button type="button">
+          {labels.generate}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="generator-result">
+    <div class="generator-result__header generator-result__header--simple">
+      <h3>{labels.resultTitle}</h3>
+      <div class="generator-result__quick">
+        <button class="button button--ghost" data-copy-all disabled type="button">
+          {labels.copyAll}
+        </button>
+        <button class="button button--ghost" data-save-button disabled type="button">
+          {labels.save}
+        </button>
+        <button class="button button--ghost" data-share-button disabled type="button">
+          {labels.share}
+        </button>
+      </div>
+    </div>
+
+    <p class="status-line" aria-live="polite" data-status-line></p>
+    <p class="generator-empty-note" data-empty-note>{emptyHint}</p>
+
+    <div class="generator-field-grid" role="list">
+      {fieldRows.map((field) => (
+        <div
+          class={`generator-field-card${field.wide ? " generator-field-card--wide" : ""}`}
+          data-field-key={field.key}
+          role="listitem"
+          tabindex="0"
+        >
+          <span class="generator-field-card__label">{field.label}</span>
+          <div class="generator-field-card__body">
+            <strong
+              class="generator-field-card__value generator-field-card__value--empty"
+              data-field-value
+            >
+              --
+            </strong>
+            <button
+              aria-label={`${labels.copy} ${field.label}`}
+              class="icon-button"
+              data-copy-field
+              disabled
+              type="button"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path
+                  d="M9 9a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2V9zm-4 6H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="saved-panel" data-saved-panel hidden>
+    <div class="saved-panel__header">
+      <h3>{labels.savedTitle}</h3>
+      <button class="button button--primary saved-export-button" data-export-saved type="button">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path
+            d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.9"
+          ></path>
+        </svg>
+        <span>{savedUiByLocale[locale].exportLabel}</span>
+      </button>
+    </div>
+
+    <div class="saved-table">
+      <div class="saved-table__head">
+        <span>{savedUiByLocale[locale].columns.name}</span>
+        <span>{savedUiByLocale[locale].columns.gender}</span>
+        <span>{savedUiByLocale[locale].columns.phone}</span>
+        <span>{savedUiByLocale[locale].columns.address}</span>
+        <span>{savedUiByLocale[locale].columns.actions}</span>
+      </div>
+      <div class="saved-grid" data-saved-grid></div>
+    </div>
+  </div>
+
+  <div class="share-modal" data-share-modal hidden>
+    <div class="share-modal__backdrop" data-share-close></div>
+    <div
+      class="share-modal__dialog"
+      aria-labelledby="share-modal-title"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div class="share-modal__header">
+        <h3 id="share-modal-title">{shareUiByLocale[locale].title}</h3>
+        <button
+          aria-label={shareUiByLocale[locale].close}
+          class="share-modal__close"
+          data-share-close
+          type="button"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path
+              d="m6 6 12 12M18 6 6 18"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="share-modal__body">
+        <div class="share-modal__section-head">
+          <label class="share-modal__label" for="share-preview">
+            {shareUiByLocale[locale].previewLabel}
+          </label>
+        </div>
+        <textarea
+          class="share-modal__preview"
+          data-share-preview
+          id="share-preview"
+          readonly
+          rows="5"
+        ></textarea>
+
+        <div class="share-modal__section-head">
+          <label class="share-modal__label" for="share-link">
+            {shareUiByLocale[locale].linkLabel}
+          </label>
+        </div>
+        <div class="share-modal__link-row">
+          <input class="share-modal__link" data-share-link id="share-link" readonly type="text" />
+        </div>
+
+        <div class="share-modal__actions">
+          <button class="button button--primary share-modal__action" data-copy-share-text type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path
+                d="M9 9a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2V9zm-4 6H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              ></path>
+            </svg>
+            <span>{shareUiByLocale[locale].copyText}</span>
+          </button>
+
+          <button class="button button--primary share-modal__action" data-system-share type="button">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="18" cy="5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.9"></circle>
+              <circle cx="6" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.9"></circle>
+              <circle cx="18" cy="19" r="2.2" fill="none" stroke="currentColor" stroke-width="1.9"></circle>
+              <path
+                d="M8 11l7.6-4.4M8 13l7.6 4.4"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.9"
+              ></path>
+            </svg>
+            <span>{shareUiByLocale[locale].systemShare}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template data-generator-config>{configJson}</template>
+</section>
+
+<script type="module" src={addressGeneratorScriptUrl}></script>

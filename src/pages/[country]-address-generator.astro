@@ -1,0 +1,18 @@
+---
+import CountryPage from "../components/CountryPage.astro";
+import { countries } from "../data/countries";
+import { primaryCountrySlug } from "../data/site";
+
+export function getStaticPaths() {
+  return countries
+    .filter((country) => country.slug !== primaryCountrySlug)
+    .map((country) => ({
+      params: { country: country.slug }
+    }));
+}
+
+const { country } = Astro.params;
+---
+
+<CountryPage locale="zh" countrySlug={country!} />
+

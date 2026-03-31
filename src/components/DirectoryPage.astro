@@ -1,0 +1,137 @@
+---
+import Footer from "./Footer.astro";
+import Header from "./Header.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getAllBlogPosts } from "../data/blog";
+import { countries } from "../data/countries";
+import { withCountryContent } from "../data/country-content";
+import {
+  alternateLocaleLinks,
+  getBlogPath,
+  getCountryPath,
+  getFormatPath,
+  getHomePath,
+  ui,
+  type Locale
+} from "../data/site";
+import { toAbsoluteUrl } from "../utils/seo";
+
+interface Props {
+  locale: Locale;
+  kind: "countries" | "blog" | "formats";
+  canonicalPath: string;
+  alternatePaths: Record<Locale, string>;
+}
+
+const { locale, kind, canonicalPath, alternatePaths } = Astro.props;
+const strings = ui[locale];
+const pageCountries = countries.map((country) => withCountryContent(country));
+const pageBlogPosts = getAllBlogPosts();
+
+const config = {
+  countries: {
+    title: strings.nav.countries,
+    description: strings.directory.countriesDescription,
+    breadcrumbName: strings.nav.countries
+  },
+  blog: {
+    title: strings.nav.blog,
+    description: strings.directory.blogDescription,
+    breadcrumbName: strings.nav.blog
+  },
+  formats: {
+    title: strings.nav.formats,
+    description: strings.directory.formatDescription,
+    breadcrumbName: strings.nav.formats
+  }
+}[kind];
+
+const alternates = alternateLocaleLinks(alternatePaths);
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: config.title,
+    description: config.description,
+    url: toAbsoluteUrl(canonicalPath, Astro.site)
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: strings.common.breadcrumbsHome,
+        item: toAbsoluteUrl(getHomePath(locale), Astro.site)
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: config.breadcrumbName,
+        item: toAbsoluteUrl(canonicalPath, Astro.site)
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={config.title}
+  description={config.description}
+  canonicalPath={canonicalPath}
+  alternates={alternates}
+  schema={schema}
+>
+  <Header locale={locale} alternatePaths={alternatePaths} />
+
+  <main>
+    <section class="hero hero--simple">
+      <div class="container">
+        <p class="eyebrow">{config.title}</p>
+        <h1>{config.title}</h1>
+        <p class="hero__copy">{config.description}</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container card-grid">
+        {kind === "countries" &&
+          pageCountries.map((country) => (
+            <article class="link-card">
+              <h2>{country.heading[locale]}</h2>
+              <p>{country.directoryExcerpt[locale]}</p>
+              <a class="text-link" href={getCountryPath(locale, country.slug)}>
+                {strings.common.readMore}
+              </a>
+            </article>
+          ))}
+
+        {kind === "blog" &&
+          pageBlogPosts.map((post) => (
+            <article class="link-card">
+              <h2>{post.title[locale]}</h2>
+              <p>{post.description[locale]}</p>
+              <a class="text-link" href={getBlogPath(locale, post.slug)}>
+                {strings.common.readMore}
+              </a>
+            </article>
+          ))}
+
+        {kind === "formats" &&
+          pageCountries.map((country) => (
+            <article class="link-card">
+              <h2>{country.heading[locale]}</h2>
+              <p>{country.formatRules[locale][0]}</p>
+              <a class="text-link" href={getFormatPath(locale, country.slug)}>
+                {strings.common.readMore}
+              </a>
+            </article>
+          ))}
+      </div>
+    </section>
+  </main>
+
+  <Footer locale={locale} />
+</BaseLayout>

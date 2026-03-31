@@ -1,0 +1,141 @@
+---
+import {
+  getCountryPath,
+  getHomePath,
+  getTaxFreePath,
+  localeMeta,
+  locales,
+  siteConfig,
+  type Locale
+} from "../data/site";
+import { countries } from "../data/countries";
+
+interface Props {
+  locale: Locale;
+  alternatePaths?: Record<Locale, string>;
+  currentCountrySlug?: string;
+  currentSpecialPage?: "tax-free";
+}
+
+const { locale, alternatePaths, currentCountrySlug, currentSpecialPage } = Astro.props;
+
+const navLabels = {
+  zh: {
+    more: "更多地址",
+    saved: "保存地址",
+    taxFree: "美国免税州",
+    tagline: "usaddresstool.com",
+    primaryNav: "主导航",
+    languageSwitch: "语言切换"
+  },
+  en: {
+    more: "More addresses",
+    saved: "Saved",
+    taxFree: "US tax-free",
+    tagline: "usaddresstool.com",
+    primaryNav: "Primary navigation",
+    languageSwitch: "Language switcher"
+  },
+  ja: {
+    more: "その他住所",
+    saved: "保存住所",
+    taxFree: "米国免税州",
+    tagline: "usaddresstool.com",
+    primaryNav: "メインナビゲーション",
+    languageSwitch: "言語切替"
+  }
+}[locale];
+
+const primaryCountries = ["us", "jp", "ca"];
+const primaryCountryRecords = primaryCountries
+  .map((slug) => countries.find((country) => country.slug === slug))
+  .filter(Boolean);
+const moreCountries = countries.filter((country) => !primaryCountries.includes(country.slug));
+const moreActive =
+  currentCountrySlug !== undefined && !primaryCountries.includes(currentCountrySlug);
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-logo" href={getHomePath(locale)}>
+      <span class="site-logo__mark">US</span>
+      <span class="site-logo__copy">
+        <strong>{siteConfig.name}</strong>
+        <small>{navLabels.tagline}</small>
+      </span>
+    </a>
+
+    <nav class="site-nav site-nav--tools" aria-label={navLabels.primaryNav}>
+      {primaryCountryRecords.map((country, index) =>
+        country ? (
+          <Fragment>
+            <a
+              href={getCountryPath(locale, country.slug)}
+              class:list={{
+                "site-nav__link": true,
+                "site-nav__link--active": currentCountrySlug === country.slug
+              }}
+            >
+              {country.name[locale]}
+            </a>
+
+            {index === 0 ? (
+              <a
+                href={getTaxFreePath(locale)}
+                class:list={{
+                  "site-nav__link": true,
+                  "site-nav__link--active": currentSpecialPage === "tax-free"
+                }}
+              >
+                {navLabels.taxFree}
+              </a>
+            ) : null}
+          </Fragment>
+        ) : null
+      )}
+
+      <details
+        data-nav-more
+        class:list={{
+          "site-nav__dropdown": true,
+          "site-nav__dropdown--active": moreActive
+        }}
+      >
+        <summary class="site-nav__link">{navLabels.more}</summary>
+        <div class="site-nav__menu" data-nav-more-menu>
+          {moreCountries.map((country) => (
+            <a
+              href={getCountryPath(locale, country.slug)}
+              class:list={{
+                "site-nav__menu-link": true,
+                "site-nav__menu-link--active": currentCountrySlug === country.slug
+              }}
+            >
+              {country.name[locale]}
+            </a>
+          ))}
+        </div>
+      </details>
+
+      <a href="#saved-addresses" class="site-nav__link site-nav__link--saved">
+        <span data-saved-address-link data-label={navLabels.saved}>{`${navLabels.saved} (0)`}</span>
+      </a>
+    </nav>
+
+    <div class="language-switch" aria-label={navLabels.languageSwitch}>
+      {locales.map((code) => (
+        <a
+          href={alternatePaths?.[code] ?? getHomePath(code)}
+          class:list={{
+            "language-switch__link": true,
+            "language-switch__link--active": locale === code
+          }}
+          lang={localeMeta[code].htmlLang}
+        >
+          {localeMeta[code].label}
+        </a>
+      ))}
+    </div>
+  </div>
+</header>
+<script is:inline type="module" src="/scripts/header-ui.js"></script>

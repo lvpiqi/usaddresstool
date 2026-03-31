@@ -1,0 +1,14 @@
+---
+import FormatPage from "../../../components/FormatPage.astro";
+import { countries } from "../../../data/countries";
+
+export function getStaticPaths() {
+  return countries.map((country) => ({
+    params: { country: country.slug }
+  }));
+}
+
+const { country } = Astro.params;
+---
+
+<FormatPage locale="ja" countrySlug={country!} />
