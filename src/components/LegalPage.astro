@@ -12,6 +12,7 @@ import {
   type InfoPageKey,
   type Locale
 } from "../data/site";
+import { getLegalKeywords } from "../utils/keywords";
 import { toAbsoluteUrl } from "../utils/seo";
 
 interface Props {
@@ -67,6 +68,7 @@ const schema = [
   title={page.title[locale]}
   description={page.description[locale]}
   canonicalPath={canonicalPath}
+  keywords={getLegalKeywords(locale, pageKey)}
   alternates={alternateLocaleLinks(alternatePaths)}
   schema={schema}
   noindex={true}

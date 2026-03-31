@@ -42,9 +42,9 @@ export const taxFreePage = {
     "このページは州レベルの売上税がない 5 州だけを扱うため、免税州シナリオの確認がしやすくなります。"
   ),
   badges: list(
-    ["5 个免税州", "州级筛选", "适合结账演示"],
-    ["5 tax-free states", "State filtering", "Checkout-ready"],
-    ["5 つの免税州", "州フィルター", "チェックアウト向け"]
+    ["5 个免税州", "免费使用", "真实地址"],
+    ["5 tax-free states", "Free to use", "Real addresses"],
+    ["5 つの免税州", "無料利用", "実在住所"]
   ),
   generatorTitle: text("免税州地址生成器", "Tax-Free State Generator", "免税州住所ジェネレーター"),
   generatorDescription: text(

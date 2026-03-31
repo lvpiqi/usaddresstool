@@ -18,6 +18,7 @@ import {
   ui,
   type Locale
 } from "../data/site";
+import { getTaxFreeKeywords } from "../utils/keywords";
 import { toAbsoluteUrl } from "../utils/seo";
 
 interface Props {
@@ -69,23 +70,25 @@ const sectionTitles = {
 const schema = [
   {
     "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: taxFreePage.title[locale],
+    description: taxFreePage.description[locale],
+    url: canonicalUrl,
+    inLanguage: locale,
+    about: {
+      "@type": "Place",
+      name: taxFreePage.title[locale]
+    }
+  },
+  {
+    "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: taxFreePage.title[locale],
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Web",
-    description: taxFreePage.description[locale]
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: taxFreePage.faq.map((item) => ({
-      "@type": "Question",
-      name: item.question[locale],
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer[locale]
-      }
-    }))
+    description: taxFreePage.description[locale],
+    inLanguage: locale,
+    isAccessibleForFree: true
   },
   {
     "@context": "https://schema.org",
@@ -113,6 +116,7 @@ const schema = [
   title={taxFreePage.title[locale]}
   description={taxFreePage.description[locale]}
   canonicalPath={canonicalPath}
+  keywords={getTaxFreeKeywords(locale)}
   alternates={alternates}
   schema={schema}
 >
@@ -137,7 +141,6 @@ const schema = [
             profile="tax-free"
             introEyebrow={country.name[locale]}
             introDescription={taxFreePage.intro[locale]}
-            introMeta={taxFreePage.badges[locale].join(" · ")}
             introHeadingTag="h1"
           />
         </div>

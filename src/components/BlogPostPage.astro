@@ -3,6 +3,7 @@ import Footer from "./Footer.astro";
 import Header from "./Header.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getBlogPost } from "../data/blog";
+import { siteConfig } from "../data/site";
 import {
   alternateLocaleLinks,
   getHomePath,
@@ -12,6 +13,7 @@ import {
   ui,
   type Locale
 } from "../data/site";
+import { getBlogKeywords } from "../utils/keywords";
 import { toAbsoluteUrl } from "../utils/seo";
 
 interface Props {
@@ -56,7 +58,17 @@ const schema = [
     datePublished: post.publishedAt,
     inLanguage: locale,
     mainEntityOfPage: canonicalUrl,
-    url: canonicalUrl
+    url: canonicalUrl,
+    author: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: toAbsoluteUrl(getHomePath(locale), Astro.site)
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: toAbsoluteUrl(getHomePath(locale), Astro.site)
+    }
   },
   {
     "@context": "https://schema.org",
@@ -90,6 +102,7 @@ const schema = [
   title={post.title[locale]}
   description={post.description[locale]}
   canonicalPath={canonicalPath}
+  keywords={getBlogKeywords(locale, post)}
   alternates={alternateLocaleLinks(alternatePaths)}
   schema={schema}
   ogType="article"

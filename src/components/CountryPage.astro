@@ -21,6 +21,11 @@ import {
   ui,
   type Locale
 } from "../data/site";
+import {
+  getCountryGeneratorSeo,
+  getCountryVisibleFaq
+} from "../utils/country-page-seo";
+import { getCountryKeywords } from "../utils/keywords";
 import { toAbsoluteUrl } from "../utils/seo";
 
 interface Props {
@@ -51,6 +56,8 @@ const runtimeRegions = getRuntimeRegions(country).map((region) => ({
   code: region.code,
   label: getRuntimeRegionDisplayName(country, region, locale)
 }));
+const seo = getCountryGeneratorSeo(locale, pageCountry);
+const pageFaq = getCountryVisibleFaq(locale, pageCountry);
 
 const sectionTitles = {
   format: {
@@ -88,23 +95,25 @@ const sectionTitles = {
 const schema = [
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: pageCountry.heading[locale],
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    description: pageCountry.metaDescription[locale]
+    "@type": "WebPage",
+    name: seo.title,
+    description: seo.description,
+    url: canonicalUrl,
+    inLanguage: locale,
+    about: {
+      "@type": "Place",
+      name: pageCountry.name[locale]
+    }
   },
   {
     "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: pageCountry.faq.map((item) => ({
-      "@type": "Question",
-      name: item.question[locale],
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer[locale]
-      }
-    }))
+    "@type": "SoftwareApplication",
+    name: seo.title,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Web",
+    description: seo.description,
+    inLanguage: locale,
+    isAccessibleForFree: true
   },
   {
     "@context": "https://schema.org",
@@ -129,9 +138,11 @@ const schema = [
 
 <BaseLayout
   locale={locale}
-  title={pageCountry.heading[locale]}
-  description={pageCountry.metaDescription[locale]}
+  title={seo.title}
+  description={seo.description}
   canonicalPath={canonicalPath}
+  keywords={getCountryKeywords(locale, pageCountry)}
+  includeSiteSchema={country.slug === "us" && locale === "zh"}
   alternates={alternates}
   schema={schema}
 >
@@ -243,10 +254,10 @@ const schema = [
           <h2>{sectionTitles.faq[locale]}</h2>
         </div>
         <div class="faq-list">
-          {pageCountry.faq.map((item) => (
+          {pageFaq.map((item) => (
             <details class="faq-item">
-              <summary>{item.question[locale]}</summary>
-              <p>{item.answer[locale]}</p>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
             </details>
           ))}
         </div>

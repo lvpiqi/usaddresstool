@@ -16,6 +16,11 @@ import {
   ui,
   type Locale
 } from "../data/site";
+import {
+  getCountryFormatSeo,
+  getCountryVisibleFaq
+} from "../utils/country-page-seo";
+import { getFormatKeywords } from "../utils/keywords";
 import { toAbsoluteUrl } from "../utils/seo";
 
 interface Props {
@@ -39,36 +44,32 @@ const strings = ui[locale];
 const relatedPosts = pageCountry.relatedPosts
   .map((slug) => getBlogPost(slug))
   .filter(Boolean);
-const formatTitle = {
-  zh: `${pageCountry.name[locale]}地址格式`,
-  en: `${pageCountry.name[locale]} Address Format`,
-  ja: `${pageCountry.name[locale]}の住所形式`
-}[locale];
-const formatMetaDescription = {
-  zh: `查看${pageCountry.name.zh}地址格式、${pageCountry.regionLabel.zh}字段写法、邮编规则和表单填写提示，适合测试、表单验证与地址格式研究。`,
-  en: `Learn the ${pageCountry.name.en} address format, ${pageCountry.regionLabel.en.toLowerCase()} naming, postal-code rules, and form-entry tips for testing and form validation.`,
-  ja: `${pageCountry.name.ja}の住所形式、${pageCountry.regionLabel.ja}表記、郵便番号ルール、フォーム入力時の注意点を確認できます。`
-}[locale];
+const formatSeo = getCountryFormatSeo(locale, pageCountry);
+const formatTitle = formatSeo.title;
+const formatMetaDescription = formatSeo.description;
+const pageFaq = getCountryVisibleFaq(locale, pageCountry);
+
 const formatCopy = {
   zh: {
     overviewEyebrow: "格式说明",
-    overviewTitle: `${pageCountry.name.zh}地址应该怎么读`,
+    overviewTitle: `如何理解${pageCountry.name.zh}地址格式`,
     overviewParagraphs: [
-      `${pageCountry.name.zh}地址格式页的任务不是重复工具按钮，而是把地址顺序、${pageCountry.regionLabel.zh}字段和邮编规则讲清楚，让用户知道生成结果为什么这样排布。`,
-      `如果你在做注册页、结账页、数据库样例或地址字段研究，这一页更适合先理解格式，再跳回生成器做实际测试。`
+      `${pageCountry.name.zh}地址格式页的重点不是重复生成按钮，而是把地址顺序、${pageCountry.regionLabel.zh}字段和邮编规则解释清楚，让用户知道为什么结果会这样排列。`,
+      "如果你在做注册页、结账页、数据库样例或地址字段研究，先看格式页理解结构，再回到生成页做实际测试，会更高效。"
     ],
     checklistEyebrow: "填写提示",
-    checklistTitle: "使用这个格式页时重点检查什么",
+    checklistTitle: "浏览格式页时建议先看这些内容",
     checklist: [
-      `先确认目标表单里的 ${pageCountry.regionLabel.zh} 字段要求全称还是缩写。`,
-      "检查邮编字段是否单独显示，以及是否要求固定字符长度。",
-      "复制完整地址前，先确认街道、城市、地区和邮编的顺序是否符合该国家习惯。"
+      `先确认目标表单里的${pageCountry.regionLabel.zh}字段是要求全称还是缩写。`,
+      "再确认邮编字段是否需要单独输入，以及是否有固定字符长度或格式限制。",
+      "复制完整地址之前，检查街道、城市、地区和邮编的顺序是否符合该国家的习惯。"
     ],
     faqTitle: `${pageCountry.name.zh}地址格式 FAQ`,
     relatedTitle: `${pageCountry.name.zh}相关页面`,
-    relatedDescription: "继续进入生成器、相关文章或地址格式目录，形成更清晰的站内浏览路径。",
+    relatedDescription:
+      "继续进入生成器、相关文章或地址格式目录，让国家页、格式页和博客页形成清晰的站内主题链路。",
     generatorCardTitle: `${pageCountry.name.zh}地址生成器`,
-    generatorCardDescription: "直接回到工具页，按地区筛选并生成可复制的地址结果。",
+    generatorCardDescription: "返回工具页，按地区筛选并生成可复制的结构化地址结果。",
     directoryCardTitle: "地址格式目录",
     directoryCardDescription: "继续对比其他国家的地址顺序、邮编规则和字段写法。"
   },
@@ -76,45 +77,51 @@ const formatCopy = {
     overviewEyebrow: "Format overview",
     overviewTitle: `How To Read the ${pageCountry.name.en} Address Format`,
     overviewParagraphs: [
-      `This page exists to explain address order, ${pageCountry.regionLabel.en.toLowerCase()} fields, and postal-code behavior so the generator output feels understandable instead of random.`,
-      "It is the better place to learn the structure first, then return to the generator when you need copy-ready sample results for testing, demos, or form validation."
+      `This page explains address order, ${pageCountry.regionLabel.en.toLowerCase()} fields, and postal-code behavior so the generator output feels understandable instead of random.`,
+      "If you are working on sign-up forms, checkout flows, sample data, or address-field research, it is usually better to learn the structure here first and then return to the generator."
     ],
     checklistEyebrow: "Form tips",
     checklistTitle: "What To Check On This Format Page",
     checklist: [
       `Confirm whether your target form expects a full ${pageCountry.regionLabel.en.toLowerCase()} name or an abbreviation.`,
-      "Check whether postal code should be entered as its own field and whether length rules apply.",
-      "Make sure the order of street, city, region, and postal code matches the country convention before copying the full address."
+      "Check whether postal code should be entered as its own field and whether strict length or pattern rules apply.",
+      "Make sure the order of street, city, region, and postal code matches the local convention before copying the full address."
     ],
     faqTitle: `${pageCountry.name.en} Address Format FAQ`,
     relatedTitle: `Related ${pageCountry.name.en} Pages`,
-    relatedDescription: "Move from this format guide into the generator, supporting posts, or the broader format directory.",
+    relatedDescription:
+      "Use this guide as the format layer between the generator, the country page, and supporting blog posts.",
     generatorCardTitle: `${pageCountry.name.en} Address Generator`,
-    generatorCardDescription: "Return to the tool page and generate structured, copy-ready address results.",
+    generatorCardDescription:
+      "Return to the tool page and generate structured, copy-ready address results.",
     directoryCardTitle: "Address format directory",
-    directoryCardDescription: "Compare address order, postal rules, and field naming across other countries."
+    directoryCardDescription:
+      "Compare address order, postal rules, and field naming across other countries."
   },
   ja: {
     overviewEyebrow: "形式ガイド",
-    overviewTitle: `${pageCountry.name.ja}の住所形式を読むポイント`,
+    overviewTitle: `${pageCountry.name.ja}の住所形式を理解するポイント`,
     overviewParagraphs: [
-      `このページは、住所の並び順、${pageCountry.regionLabel.ja}項目、郵便番号ルールを説明し、ジェネレーター結果の意味を理解しやすくするための形式ガイドです。`,
-      "登録フォーム、チェックアウト、サンプルデータ、住所研究に使う前に、まずここで形式を確認し、その後にジェネレーターへ戻る流れが自然です。"
+      `このページは、住所順序、${pageCountry.regionLabel.ja}項目、郵便番号ルールを整理し、生成結果の意味を理解しやすくするための形式ガイドです。`,
+      "登録フォーム、チェックアウト、サンプルデータ、住所研究に使う前に、まずここで形式を確認してから生成ページへ戻る流れが自然です。"
     ],
-    checklistEyebrow: "入力時の確認",
-    checklistTitle: "この形式ページで見ておきたい点",
+    checklistEyebrow: "入力チェック",
+    checklistTitle: "形式ページで先に確認したい点",
     checklist: [
-      `${pageCountry.regionLabel.ja}項目が正式名称か略称かを対象フォームで確認する。`,
-      "郵便番号が独立項目なのか、文字数ルールがあるのかを確認する。",
-      "完全住所をコピーする前に、street、city、region、postal code の順序がその国の慣習に合っているかを見る。"
+      `${pageCountry.regionLabel.ja}項目が正式名称なのか略称なのかを確認します。`,
+      "郵便番号が独立項目かどうか、文字数や入力ルールがあるかを確認します。",
+      "完全な住所をコピーする前に、street、city、region、postal code の並びがその国の慣習に合っているかを見ます。"
     ],
     faqTitle: `${pageCountry.name.ja}の住所形式 FAQ`,
     relatedTitle: `${pageCountry.name.ja}関連ページ`,
-    relatedDescription: "ジェネレーター、関連記事、住所形式ディレクトリへ自然につながる内部リンクをまとめています。",
+    relatedDescription:
+      "生成ページ、関連記事、住所形式ディレクトリへ自然につながるよう、内部リンクをまとめています。",
     generatorCardTitle: `${pageCountry.name.ja}住所ジェネレーター`,
-    generatorCardDescription: "ツールページへ戻り、地域で絞り込んだ住所結果を生成できます。",
+    generatorCardDescription:
+      "ツールページへ戻り、地域で絞り込んだ住所結果を生成できます。",
     directoryCardTitle: "住所形式ディレクトリ",
-    directoryCardDescription: "他国の住所順序、郵便番号ルール、項目名も比較できます。"
+    directoryCardDescription:
+      "他国の住所順序、郵便番号ルール、項目名も比較できます。"
   }
 }[locale];
 
@@ -124,19 +131,12 @@ const schema = [
     "@type": "WebPage",
     name: formatTitle,
     description: formatMetaDescription,
-    url: toAbsoluteUrl(canonicalPath, Astro.site)
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: pageCountry.faq.map((item) => ({
-      "@type": "Question",
-      name: item.question[locale],
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer[locale]
-      }
-    }))
+    url: toAbsoluteUrl(canonicalPath, Astro.site),
+    inLanguage: locale,
+    about: {
+      "@type": "Place",
+      name: pageCountry.name[locale]
+    }
   },
   {
     "@context": "https://schema.org",
@@ -170,6 +170,7 @@ const schema = [
   title={formatTitle}
   description={formatMetaDescription}
   canonicalPath={canonicalPath}
+  keywords={getFormatKeywords(locale, pageCountry)}
   alternates={alternateLocaleLinks(alternatePaths)}
   schema={schema}
 >
@@ -267,10 +268,10 @@ const schema = [
           <h2>{formatCopy.faqTitle}</h2>
         </div>
         <div class="faq-list">
-          {pageCountry.faq.map((item) => (
+          {pageFaq.map((item) => (
             <details class="faq-item">
-              <summary>{item.question[locale]}</summary>
-              <p>{item.answer[locale]}</p>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
             </details>
           ))}
         </div>

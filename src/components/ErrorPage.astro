@@ -14,6 +14,7 @@ import {
   ui,
   type Locale
 } from "../data/site";
+import { getErrorKeywords } from "../utils/keywords";
 
 interface Props {
   locale: Locale;
@@ -184,6 +185,7 @@ const quickLinks = [
   title={`${statusCode} ${statusCopy.title[locale]}`}
   description={statusCopy.description[locale]}
   canonicalPath={getStatusPath(locale, statusCode)}
+  keywords={getErrorKeywords(locale, statusCode)}
   alternates={locales.map((lang) => ({
     hreflang: localeMeta[lang].htmlLang,
     href: getStatusPath(lang, statusCode)

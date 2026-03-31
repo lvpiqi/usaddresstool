@@ -17,6 +17,7 @@ import {
   ui,
   type Locale
 } from "../data/site";
+import { getDirectoryKeywords } from "../utils/keywords";
 import { toAbsoluteUrl } from "../utils/seo";
 
 interface Props {
@@ -348,6 +349,7 @@ const schema = [
   title={config.title}
   description={config.description}
   canonicalPath={canonicalPath}
+  keywords={getDirectoryKeywords(locale, kind)}
   alternates={alternates}
   schema={schema}
 >
