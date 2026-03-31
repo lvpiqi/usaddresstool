@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const distPath = path.resolve("dist");
+const outputDir = process.argv[2]?.trim() || process.env.BUILD_OUT_DIR?.trim() || "dist";
+const distPath = path.resolve(outputDir);
 const assetsIgnorePath = path.join(distPath, ".assetsignore");
 const sitemapIndexPath = path.join(distPath, "sitemap-index.xml");
 const sitemapAliasPath = path.join(distPath, "sitemap.xml");

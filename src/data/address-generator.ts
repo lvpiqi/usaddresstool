@@ -305,6 +305,10 @@ function getNameBank(countryCode: string) {
   return nameBankByCountryCode[countryCode] ?? westernNameBank;
 }
 
+function shouldForceEnglishResultLocale(country: CountryRecord) {
+  return ["US", "CA", "UK", "IN"].includes(country.code);
+}
+
 function getLocalizedField(
   value: string,
   localized:
@@ -447,23 +451,28 @@ export function generateAddress({
   const gender: GeneratedGender = random() > 0.5 ? "female" : "male";
   const firstName = pickRandom(bank[gender], random) ?? "Alex";
   const lastName = pickRandom(bank.last, random) ?? "Taylor";
-  const regionName = getRuntimeRegionName(country, entry.regionCode, locale, profile);
+  const resultLocale = shouldForceEnglishResultLocale(country) ? "en" : locale;
+  const regionName = getRuntimeRegionName(country, entry.regionCode, resultLocale, profile);
   const phone = buildPhone(
     entry.phone,
     country.code,
     entry.regionCode,
     `${entry.id}:${resolvedSeed}`
   );
-  const street = getLocalizedField(entry.street, entry.streetLocalized, locale);
-  const city = getLocalizedField(entry.city, entry.cityLocalized, locale);
-  const district = getLocalizedOptionalField(entry.district, entry.districtLocalized, locale);
+  const street = getLocalizedField(entry.street, entry.streetLocalized, resultLocale);
+  const city = getLocalizedField(entry.city, entry.cityLocalized, resultLocale);
+  const district = getLocalizedOptionalField(
+    entry.district,
+    entry.districtLocalized,
+    resultLocale
+  );
 
   return {
     seed: resolvedSeed,
     sourceEntryId: entry.id,
     countrySlug: country.slug,
     countryCode: country.code,
-    countryName: country.name[locale],
+    countryName: country.name[resultLocale],
     regionCode: entry.regionCode,
     regionName,
     lastName,
@@ -476,7 +485,7 @@ export function generateAddress({
     district,
     stateFullName: regionName,
     postalCode: entry.postalCode,
-    fullAddress: buildFullAddress(country, entry, regionName, locale),
+    fullAddress: buildFullAddress(country, entry, regionName, resultLocale),
     latitude: entry.latitude,
     longitude: entry.longitude
   };

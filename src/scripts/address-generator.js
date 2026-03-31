@@ -239,7 +239,11 @@ function enhanceGenerator(root) {
     }, 1400);
   }
 
-  function getGenderLabel(gender) {
+  function getGenderLabel(gender, record = current) {
+    if (record && ["US", "CA", "UK", "IN"].includes(record.countryCode)) {
+      return gender === "female" ? "Female" : "Male";
+    }
+
     return gender === "female"
       ? labels.genderLabels.female
       : labels.genderLabels.male;
@@ -262,7 +266,7 @@ function enhanceGenerator(root) {
         !record
           ? ""
           : field.key === "gender"
-            ? getGenderLabel(record.gender)
+            ? getGenderLabel(record.gender, record)
             : record[field.key] ?? "";
 
       field.value.dataset.rawValue = rawValue;
@@ -383,7 +387,7 @@ function enhanceGenerator(root) {
       const gender = document.createElement("div");
       gender.className = "saved-cell";
       gender.dataset.label = savedUi.columns.gender;
-      gender.textContent = getGenderLabel(item.record.gender);
+      gender.textContent = getGenderLabel(item.record.gender, item.record);
 
       const phone = document.createElement("div");
       phone.className = "saved-cell";
@@ -635,7 +639,7 @@ function enhanceGenerator(root) {
       ],
       ...saved.map((item) => [
         `${item.record.firstName} ${item.record.lastName}`,
-        getGenderLabel(item.record.gender),
+        getGenderLabel(item.record.gender, item.record),
         item.record.phone,
         item.record.fullAddress,
         formatSavedDate(item.savedAt)

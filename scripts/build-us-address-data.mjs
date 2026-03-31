@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 
-const FALLBACK_REFERENCE_HOMEPAGE_URL = "https://usaddressgen.com/";
 const USER_AGENT = "USAddressToolDatasetBuilder/1.0";
 // Collect a deeper per-state seed pool so runtime house-number offsets can
 // fan out from more real streets instead of repeating the same 4 entries.
@@ -54,6 +53,8 @@ const require = createRequire(import.meta.url);
 const args = process.argv.slice(2);
 const statesArg = args.find((arg) => arg.startsWith("--states="));
 const referenceArg = args.find((arg) => arg.startsWith("--reference="));
+const usDataUrlArg = args.find((arg) => arg.startsWith("--us-data-url="));
+const usCitiesUrlArg = args.find((arg) => arg.startsWith("--us-cities-url="));
 const requestedStateCodes = statesArg
   ? statesArg
       .slice("--states=".length)
@@ -62,10 +63,20 @@ const requestedStateCodes = statesArg
       .filter(Boolean)
   : [];
 const requestedStateSet = new Set(requestedStateCodes);
-const HOMEPAGE_URL =
+const referenceHomepageUrl =
   referenceArg?.slice("--reference=".length).trim() ||
   process.env.US_ADDRESS_REFERENCE_URL?.trim() ||
-  FALLBACK_REFERENCE_HOMEPAGE_URL;
+  "";
+const explicitUsDataUrl =
+  usDataUrlArg?.slice("--us-data-url=".length).trim() ||
+  process.env.US_ADDRESS_REFERENCE_US_DATA_URL?.trim() ||
+  "";
+const explicitUsCitiesUrl =
+  usCitiesUrlArg?.slice("--us-cities-url=".length).trim() ||
+  process.env.US_ADDRESS_REFERENCE_US_CITIES_URL?.trim() ||
+  "";
+const localUsDataSnapshotPath = path.resolve("tmp_us_data_live.json");
+const localUsCitiesSnapshotPath = path.resolve("tmp_us_cities_live.json");
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -126,8 +137,8 @@ async function fetchText(url) {
   return response.text();
 }
 
-async function discoverReferenceUrls() {
-  const homepage = await fetchText(HOMEPAGE_URL);
+async function discoverReferenceUrls(homepageUrl) {
+  const homepage = await fetchText(homepageUrl);
   const usDataMatch = homepage.match(/usData:"([^"]+)"/);
   const usCitiesMatch = homepage.match(/usCitiesData:"([^"]+)"/);
 
@@ -136,9 +147,22 @@ async function discoverReferenceUrls() {
   }
 
   return {
-    usDataUrl: new URL(usDataMatch[1], HOMEPAGE_URL).toString(),
-    usCitiesUrl: new URL(usCitiesMatch[1], HOMEPAGE_URL).toString()
+    usDataUrl: new URL(usDataMatch[1], homepageUrl).toString(),
+    usCitiesUrl: new URL(usCitiesMatch[1], homepageUrl).toString()
   };
+}
+
+async function loadJsonFileIfExists(filePath) {
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw);
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 function escapeText(value) {
@@ -312,16 +336,134 @@ function sortAddresses(addresses) {
   });
 }
 
-function loadExistingAddresses() {
+function loadExistingGeneratedData() {
   try {
     const existingModule = require(path.resolve("src/data/us-generated.ts"));
-    return Array.isArray(existingModule.usGeneratedAddresses)
-      ? existingModule.usGeneratedAddresses
-      : [];
+
+    return {
+      regions: Array.isArray(existingModule.usGeneratedRegions)
+        ? existingModule.usGeneratedRegions
+        : [],
+      addresses: Array.isArray(existingModule.usGeneratedAddresses)
+        ? existingModule.usGeneratedAddresses
+        : []
+    };
   } catch (error) {
     console.warn("Unable to load existing US generated data:", error instanceof Error ? error.message : error);
-    return [];
+    return {
+      regions: [],
+      addresses: []
+    };
   }
+}
+
+function buildReferenceDataFromExisting(existingData) {
+  if (!existingData.regions.length || !existingData.addresses.length) {
+    return null;
+  }
+
+  const states = Object.fromEntries(
+    existingData.regions.map((region) => [
+      region.code,
+      {
+        name: region.name
+      }
+    ])
+  );
+  const cityMap = new Map();
+
+  for (const address of existingData.addresses) {
+    if (!states[address.regionCode] || !address.city) {
+      continue;
+    }
+
+    if (!cityMap.has(address.regionCode)) {
+      cityMap.set(address.regionCode, new Set());
+    }
+
+    cityMap.get(address.regionCode).add(address.city);
+  }
+
+  const usCities = {
+    states: Object.fromEntries(
+      Object.keys(states).map((stateCode) => [
+        stateCode,
+        {
+          cities: [...(cityMap.get(stateCode) ?? [])]
+            .sort((left, right) => left.localeCompare(right))
+            .map((cityName) => ({
+              name: {
+                en: cityName
+              }
+            }))
+        }
+      ])
+    )
+  };
+
+  return {
+    usData: {
+      states
+    },
+    usCities,
+    sourceDescription: "self-owned src/data/us-generated.ts"
+  };
+}
+
+async function loadReferenceSeedData() {
+  if ((explicitUsDataUrl && !explicitUsCitiesUrl) || (!explicitUsDataUrl && explicitUsCitiesUrl)) {
+    throw new Error("Provide both --us-data-url and --us-cities-url together.");
+  }
+
+  if (explicitUsDataUrl && explicitUsCitiesUrl) {
+    const [usData, usCities] = await Promise.all([
+      fetchJson(explicitUsDataUrl),
+      fetchJson(explicitUsCitiesUrl)
+    ]);
+
+    return {
+      usData,
+      usCities,
+      sourceDescription: "explicit US data URLs"
+    };
+  }
+
+  if (referenceHomepageUrl) {
+    const { usDataUrl, usCitiesUrl } = await discoverReferenceUrls(referenceHomepageUrl);
+    const [usData, usCities] = await Promise.all([fetchJson(usDataUrl), fetchJson(usCitiesUrl)]);
+
+    return {
+      usData,
+      usCities,
+      sourceDescription: `reference homepage ${referenceHomepageUrl}`
+    };
+  }
+
+  const [snapshotUsData, snapshotUsCities] = await Promise.all([
+    loadJsonFileIfExists(localUsDataSnapshotPath),
+    loadJsonFileIfExists(localUsCitiesSnapshotPath)
+  ]);
+
+  if (snapshotUsData && snapshotUsCities) {
+    return {
+      usData: snapshotUsData,
+      usCities: snapshotUsCities,
+      sourceDescription: "local US snapshots"
+    };
+  }
+
+  const existingReferenceData = buildReferenceDataFromExisting(loadExistingGeneratedData());
+
+  if (existingReferenceData) {
+    return existingReferenceData;
+  }
+
+  throw new Error(
+    [
+      "No local US reference source is available.",
+      "Use your self-owned snapshots, or pass --reference, or pass both --us-data-url and --us-cities-url."
+    ].join(" ")
+  );
 }
 
 function renderValue(value, depth = 0) {
@@ -356,13 +498,14 @@ function renderValue(value, depth = 0) {
 }
 
 async function main() {
-  const { usDataUrl, usCitiesUrl } = await discoverReferenceUrls();
-  const [usData, usCities] = await Promise.all([fetchJson(usDataUrl), fetchJson(usCitiesUrl)]);
+  const { usData, usCities, sourceDescription } = await loadReferenceSeedData();
   const regions = buildRegionEntries(usData.states);
   const targetRegions = requestedStateSet.size
     ? regions.filter((region) => requestedStateSet.has(region.code))
     : regions;
   const addresses = [];
+
+  console.log(`Using US seed reference source: ${sourceDescription}`);
 
   if (requestedStateSet.size && targetRegions.length !== requestedStateSet.size) {
     const discovered = new Set(targetRegions.map((region) => region.code));
@@ -449,7 +592,7 @@ async function main() {
 
   const nextAddresses = requestedStateSet.size
     ? sortAddresses([
-        ...loadExistingAddresses().filter((entry) => !requestedStateSet.has(entry.regionCode)),
+        ...loadExistingGeneratedData().addresses.filter((entry) => !requestedStateSet.has(entry.regionCode)),
         ...addresses
       ])
     : sortAddresses(addresses);

@@ -7,7 +7,7 @@ The homepage opens directly on the generator. Each country keeps its own SEO lan
 ## Current architecture
 
 - `Astro` renders static SEO pages, canonical tags, sitemap, and `hreflang`
-- `React` powers the central generator UI
+- a lightweight client script powers the central generator UI
 - `@astrojs/cloudflare` provides the Cloudflare-compatible runtime
 - `/api/address/generate` generates a deterministic result on demand
 - `src/data/countries.ts` stores your source country, region, and address seed data
@@ -37,8 +37,10 @@ This means the project is no longer a frontend-only random picker. The address r
   The server-side generator layer. This is where deterministic generation, name pools, email formatting, and final full-address assembly happen.
 - `src/pages/api/address/generate.ts`
   The runtime API endpoint used by the frontend generator.
-- `src/components/AddressGenerator.tsx`
-  The main generator UI for region selection, generation, copy, share, and save.
+- `src/components/AddressGeneratorTool.astro`
+  The main generator shell rendered into each tool page.
+- `src/scripts/address-generator.js`
+  The client-side generator logic for region selection, generation, copy, share, and save.
 - `src/components/CountryPage.astro`
   The SEO country-page template. This is the core page structure used for the homepage country and every additional country page.
 - `src/data/site.ts`
@@ -62,6 +64,12 @@ ASTRO_TELEMETRY_DISABLED=1
 
 ```bash
 npm run build
+```
+
+If `dist/` is busy on Windows because a preview process is still holding files, you can still run a clean release verification build without touching the live output folder:
+
+```bash
+npm run build:verify
 ```
 
 The build output goes to `dist/` and contains:
@@ -155,6 +163,12 @@ Public APIs are better reserved for:
 - offline verification jobs
 
 They are not a good primary data source for end-user generation traffic.
+
+For the US seed builder, the default maintenance path is now self-owned:
+
+1. reuse your checked-in `src/data/us-generated.ts`
+2. or use local cached snapshots such as `tmp_us_data_live.json` and `tmp_us_cities_live.json`
+3. only use `--reference=...` or direct `--us-data-url=... --us-cities-url=...` when you intentionally want to refresh from an external source
 
 ## How to add a new country
 

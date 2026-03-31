@@ -32,7 +32,7 @@ const contactTelegramUrl = "https://t.me/ssq789";
 const footerText = {
   zh: {
     intro:
-      "多语言地址工具站，面向测试、表单验证、演示和地址格式研究。",
+      "真实有效美国地址生成器，秒级生成含 ZIP 邮编的有效地址。",
     languages: "语言版本",
     popular: "热门工具",
     resources: "资源导航",
@@ -49,7 +49,7 @@ const footerText = {
   },
   en: {
     intro:
-      "A multilingual address tool site for testing, form validation, demos, and address-format research.",
+      "A real US address generator that creates valid ZIP-coded addresses in seconds.",
     languages: "Languages",
     popular: "Popular tools",
     resources: "Resources",
@@ -66,7 +66,7 @@ const footerText = {
   },
   ja: {
     intro:
-      "テスト、フォーム検証、デモ、住所形式確認のための多言語住所ツールサイトです。",
+      "ZIP 郵便番号付きの有効な米国住所をすぐに生成できる住所ジェネレーターです。",
     languages: "言語",
     popular: "人気ツール",
     resources: "リソース",
@@ -90,8 +90,8 @@ const footerText = {
       <section class="site-footer__intro">
         <p class="site-footer__brand">{siteConfig.name}</p>
         <p>{footerText.intro}</p>
-        <p>{strings.footer.compliance}</p>
-        <p>{strings.footer.attribution}</p>
+        {strings.footer.compliance ? <p>{strings.footer.compliance}</p> : null}
+        {strings.footer.attribution ? <p>{strings.footer.attribution}</p> : null}
 
         <section class="site-footer__contact" aria-label="Contact links">
           <div class="site-footer__contact-list">

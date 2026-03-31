@@ -39,15 +39,15 @@ export const legalPages: Record<"about" | "privacy" | "terms" | "cookies", Legal
       section(
         text("站点定位", "Site purpose", "サイトの目的"),
         [
-          "US Address Tool 是一个多语言地址工具站，面向测试、QA、表单验证、演示和地址格式研究。",
+          "US Address Tool 以真实有效美国地址生成器为核心，秒级生成含 ZIP 邮编的有效地址，支持软件测试、数据库填充与表单验证场景。",
           "首页和各国家页的重点是地址生成体验，地址格式页负责解释写法差异，博客页负责补充与工具直接相关的实践内容。"
         ],
         [
-          "US Address Tool is a multilingual address tool site for testing, QA, form validation, demos, and address-format research.",
+          "US Address Tool focuses on real US address generation, producing valid ZIP-coded addresses in seconds for software testing, database seeding, and form validation.",
           "Country generator pages focus on practical output, format guides explain structure differences, and blog posts add closely related educational context."
         ],
         [
-          "US Address Tool は、テスト、QA、フォーム検証、デモ、住所形式の確認向けの多言語ツールサイトです。",
+          "US Address Tool は、ZIP 郵便番号付きの有効な米国住所をすぐに生成でき、ソフトウェアテスト、データベース投入、フォーム検証に対応するツールです。",
           "国別ツールページは生成体験を、形式ページは住所構造の違いを、ブログはそれに近い実務知識を補います。"
         ]
       ),

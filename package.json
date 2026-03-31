@@ -6,7 +6,8 @@
   "scripts": {
     "build:us-data": "node scripts/build-us-address-data.mjs",
     "dev": "astro dev",
-    "build": "rimraf dist && astro build && node scripts/postbuild-cloudflare.mjs",
+    "build": "astro build && node scripts/postbuild-cloudflare.mjs",
+    "build:verify": "rimraf dist-verify && astro build --outDir dist-verify && node scripts/postbuild-cloudflare.mjs dist-verify",
     "preview": "astro preview",
     "cf:dev": "npm run build && wrangler dev",
     "cf:deploy": "npm run build && wrangler deploy"

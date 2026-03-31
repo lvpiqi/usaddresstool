@@ -21,7 +21,7 @@ export const siteConfig = {
   shortName: "US Address Tool",
   domain: "usaddresstool.com",
   description:
-    "US Address Tool is a multilingual address generator for testing, QA, form validation, demos, and address-format research."
+    "US Address Tool is a real US address generator that creates valid ZIP-coded addresses in seconds for software testing, database seeding, and form validation."
 };
 
 export const ui = {
@@ -115,9 +115,8 @@ export const ui = {
     },
     footer: {
       compliance:
-        "本站内容仅用于测试、QA、演示和地址格式研究，不用于冒充、欺诈或绕过平台规则。",
-      attribution:
-        "正式业务请接入你自己的地址校验、风控和合规流程。"
+        "支持软件测试、数据库填充与表单验证场景，免费使用。",
+      attribution: ""
     },
     directory: {
       countriesDescription:
@@ -218,9 +217,8 @@ export const ui = {
     },
     footer: {
       compliance:
-        "This project is for testing, QA, demos, and address-format education, not impersonation, fraud, or platform circumvention.",
-      attribution:
-        "For production use, maintain your own validation, risk, and compliance layer."
+        "Built for software testing, database seeding, and form validation. Free to use.",
+      attribution: ""
     },
     directory: {
       countriesDescription:
@@ -321,9 +319,8 @@ export const ui = {
     },
     footer: {
       compliance:
-        "このサイトはテスト、QA、デモ、住所形式の確認向けであり、なりすまし、不正利用、規約回避を目的とするものではありません。",
-      attribution:
-        "本番利用では独自の検証、リスク管理、コンプライアンス手順を追加してください。"
+        "ソフトウェアテスト、データベース投入、フォーム検証に対応しており、無料で使えます。",
+      attribution: ""
     },
     directory: {
       countriesDescription:
